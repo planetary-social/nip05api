@@ -1,0 +1,45 @@
+---
+version: "3.8"
+
+services:
+
+
+  traefik:
+    image: "traefik:v2.10"
+    container_name: "traefik"
+    command:
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.redis.address=:6379"
+    ports:
+      - "80:80"
+      - "6379:6379"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  node:
+    build: './'
+    command: npm start
+    volumes:
+      - .:/usr/app
+    environment:
+      - NODE_ENV=development
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nosapi.entrypoints=web"
+      - "traefik.http.routers.nosapi.rule=PathPrefix(`/`)"
+      - "traefik.http.services.nosapi.loadbalancer.server.port=3000"
+
+  redis:
+    image: redis
+    command: redis-server --loglevel notice
+    volumes:
+      - redis_data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.redis.entrypoints=redis"
+      - "traefik.tcp.routers.redis.rule=HostSNI(`*`)"
+      - "traefik.tcp.services.redis.loadbalancer.server.port=6379"
+
+volumes:
+  redis_data:
