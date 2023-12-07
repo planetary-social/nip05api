@@ -1,5 +1,5 @@
 import pino, { transport as _transport, stdTimeFunctions } from 'pino';
-import config from 'config';
+import config from '../config/index.js';
 
 const transport = _transport({
   targets: [
@@ -11,7 +11,7 @@ const transport = _transport({
 
 export default pino(
   {
-    level: config.get('pinoLogLevel') || 'info',
+    level: config.pinoLogLevel || 'info',
     timestamp: stdTimeFunctions.isoTime,
   },
   transport

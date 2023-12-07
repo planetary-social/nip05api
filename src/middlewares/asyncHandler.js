@@ -1,4 +1,4 @@
-function asyncHandler(name, fn) {
+export default function asyncHandler(name, fn) {
     Object.defineProperty(fn, 'name', { value: name, writable: false });
 
     const wrappedFunc = (req, res, next) =>
@@ -6,5 +6,3 @@ function asyncHandler(name, fn) {
 
     return wrappedFunc;
 };
-
-export default asyncHandler;

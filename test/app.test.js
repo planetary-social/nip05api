@@ -20,11 +20,12 @@ describe('Nostr NIP 05 API tests', () => {
 
     await request(app)
       .post('/.well-known/nostr.json')
+      .auth('', 'password')
       .send(invalidUserData)
       .expect(400);
   });
 
-  it('should store and retrieve Nostr NIP 05 data dynamically', async () => {
+  it('should store and retrieve Nostr NIP 05 data dynamically through the name query param', async () => {
     const name = 'bob';
     const userData = {
       name,
@@ -36,6 +37,7 @@ describe('Nostr NIP 05 API tests', () => {
 
     const postResponse = await request(app)
       .post('/.well-known/nostr.json')
+      .auth('', 'password')
       .send(userData);
 
     expect(postResponse.body).toEqual({});
@@ -57,4 +59,39 @@ describe('Nostr NIP 05 API tests', () => {
       ]}
     });
   });
+
+  it('should store and retrieve Nostr NIP 05 data through the subdomain', async () => {
+    const name = 'bob';
+    const userData = {
+      name,
+      data: {
+        pubkey: validPubkey,
+        relays: ['wss://relay1.com', 'wss://relay2.com']
+      }
+    };
+
+    await request(app)
+      .post('/.well-known/nostr.json')
+      .auth('', 'password')
+      .send(userData);
+
+    const getResponse = await request(app)
+      .get('/.well-known/nostr.json')
+      .query({ name: '_' })
+      .set('Host', 'bob.nos.social')
+      .expect(200);
+
+    const jsonResponse = JSON.parse(getResponse.text);
+
+
+    expect(jsonResponse).toEqual({
+      names: { bob: validPubkey },
+      relays: { [validPubkey]: [
+        'wss://relay1.com',
+        'wss://relay2.com'
+      ]}
+    });
+  });
+
+  it.todo('should not use the second level domain as a subdomain');
 });

@@ -4,7 +4,7 @@ import addFormats from "ajv-formats";
 const ajv = new Ajv();
 addFormats(ajv);
 
-const validateSchema = (schema) => {
+export default function validateSchema(schema) {
     const validate = ajv.compile(schema);
     return (req, res, next) => {
         const valid = validate(req.body);
@@ -14,5 +14,3 @@ const validateSchema = (schema) => {
         next();
     };
 };
-
-export default validateSchema;

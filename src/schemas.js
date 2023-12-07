@@ -1,4 +1,4 @@
-export const nostrSchema = {
+export const postNip05 = {
     type: "object",
     properties: {
         name: { type: "string" },
