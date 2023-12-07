@@ -3,7 +3,7 @@ import redisClient from './redisClient.js';
 import routes from './routes.js';
 import logger from './logger.js';
 import pinoHTTP from 'pino-http';
-
+import { AppError } from './errors.js';
 
 const app = express();
 

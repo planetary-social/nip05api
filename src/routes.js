@@ -3,7 +3,7 @@ import asyncHandler from './middlewares/asyncHandler.js';
 import validateSchema from './middlewares/validateSchema.js';
 import extractSubdomains from './middlewares/extractSubdomains.js';
 import logger from './logger.js';
-import { postNip05 } from './schemas.js';
+import { postNip05, getNip05 } from './schemas.js';
 import basicAuth from './middlewares/basicAuth.js';
 
 const router = Router();
@@ -31,6 +31,7 @@ router.post('/.well-known/nostr.json',
 
 router.get('/.well-known/nostr.json',
     extractSubdomains,
+    validateSchema(getNip05),
     asyncHandler('getNip05', async (req, res) => {
         const name = req.query.name === '_' ? req.nonRootSubdomains : req.query.name;
 
