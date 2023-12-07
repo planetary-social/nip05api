@@ -4,5 +4,5 @@ export default {
     },
     logLevel: "info",
     secretBasicAuthToken: process.env.SECRET_TOKEN || 'password',
-    rootDomain: process.env.ROOT_DOMAIN || 'localhost',
+    rootDomain: process.env.ROOT_DOMAIN || 'nos.social',
 };

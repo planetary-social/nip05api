@@ -24,14 +24,11 @@ app.use((req, res, next) => {
 app.use('/', routes);
 
 app.use((err, req, res, next) => {
-  logger.error(err); // Log the error for debugging
-
-  res.status(err.status || 500);
-  res.json({
-      error: {
-          message: err.message || 'Internal Server Error'
-      }
-  });
+    if (err instanceof AppError) {
+        res.status(err.status).json({ error: err.message });
+    } else {
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
 
 export default app;

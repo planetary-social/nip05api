@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import asyncHandler from './middlewares/asyncHandler.js';
 import validateSchema from './middlewares/validateSchema.js';
-import extractSubdomain from './middlewares/extractSubdomain.js';
+import extractSubdomains from './middlewares/extractSubdomains.js';
 import logger from './logger.js';
 import { postNip05 } from './schemas.js';
 import basicAuth from './middlewares/basicAuth.js';
@@ -17,7 +17,7 @@ router.post('/.well-known/nostr.json',
         await pipeline.set(`pubkey:${name}`, pubkey);
 
         await pipeline.del(`relays:${pubkey}`);
-        if (relays.length > 0) {
+        if (relays?.length) {
             await pipeline.sadd(`relays:${pubkey}`, ...relays);
         }
 
@@ -30,12 +30,17 @@ router.post('/.well-known/nostr.json',
 
 
 router.get('/.well-known/nostr.json',
-    extractSubdomain,
+    extractSubdomains,
     asyncHandler('getNip05', async (req, res) => {
-        const name = req.query.name === '_' ? req.subdomain : req.query.name;
+        const name = req.query.name === '_' ? req.nonRootSubdomains : req.query.name;
 
         const pubkey = await req.redis.get(`pubkey:${name}`);
-        logger.info(`pubkey: ${pubkey}`);
+        if (!pubkey) {
+          return res.status(404).json({ error: 'Name not found' });
+        }
+
+        logger.info(`Found pubkey: ${pubkey} for ${name}`);
+
         const relays = await req.redis.smembers(`relays:${pubkey}`);
 
         const response = { names: {}, relays: {} };

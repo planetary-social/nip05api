@@ -1,9 +1,8 @@
-export default function asyncHandler(name, fn) {
-    Object.defineProperty(fn, 'name', { value: name, writable: false });
+export default function asyncHandler(name, asyncFn) {
+    Object.defineProperty(asyncFn, 'name', { value: name, writable: false });
 
     const wrappedFunc = (req, res, next) =>
-        fn(req, res).then(next).catch(next);
-    
+        asyncFn(req, res).then(next).catch(next);
 
     return wrappedFunc;
 };
