@@ -11,7 +11,7 @@ const transport = _transport({
 
 export default pino(
   {
-    level: config.pinoLogLevel || 'info',
+    level: config.logLevel || 'info',
     timestamp: stdTimeFunctions.isoTime,
   },
   transport

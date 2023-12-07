@@ -1,7 +1,8 @@
 export default {
     redis: {
-        host: "redis"
+        host: "localhost"
     },
-    pinoLogLevel: "info",
+    logLevel: "info",
     secretBasicAuthToken: process.env.SECRET_TOKEN || 'password',
+    rootDomain: process.env.ROOT_DOMAIN || 'localhost',
 };

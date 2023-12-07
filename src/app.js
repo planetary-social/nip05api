@@ -24,7 +24,7 @@ app.use((req, res, next) => {
 app.use('/', routes);
 
 app.use((err, req, res, next) => {
-  console.error(err); // Log the error for debugging
+  logger.error(err); // Log the error for debugging
 
   res.status(err.status || 500);
   res.json({
