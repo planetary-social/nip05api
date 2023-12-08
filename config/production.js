@@ -14,6 +14,6 @@ export default {
         db: 0
     },
     logLevel: "info",
-    secretBasicAuthToken: process.env.SECRET_TOKEN,
+    secretToken: process.env.SECRET_TOKEN,
     rootDomain: process.env.ROOT_DOMAIN,
 };

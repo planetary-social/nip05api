@@ -2,5 +2,5 @@ export default {
     redis: {
         db: 2
     },
-    logLevel: "warn"
+    logLevel: "error",
 };

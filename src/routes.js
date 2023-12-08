@@ -5,6 +5,7 @@ import extractSubdomains from './middlewares/extractSubdomains.js';
 import logger from './logger.js';
 import { postNip05, getNip05 } from './schemas.js';
 import basicAuth from './middlewares/basicAuth.js';
+import { AppError } from './errors.js';
 
 const router = Router();
 
@@ -22,7 +23,7 @@ router.post('/.well-known/nostr.json',
         }
 
         const result = await pipeline.exec();
-        logger.info(`Redis result: ${JSON.stringify(result, null, 2)}`);
+        logger.info(`Added ${name} with pubkey ${pubkey}`);
 
         res.status(200).send();
     })
@@ -37,7 +38,7 @@ router.get('/.well-known/nostr.json',
 
         const pubkey = await req.redis.get(`pubkey:${name}`);
         if (!pubkey) {
-          return res.status(404).json({ error: 'Name not found' });
+          throw new AppError(404, 'Name not found');
         }
 
         logger.info(`Found pubkey: ${pubkey} for ${name}`);

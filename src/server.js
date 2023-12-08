@@ -1,8 +1,9 @@
 import app from "./app.js";
 import logger from "./logger.js";
+import config from "../config/index.js";
 
-app.listen(3000, () => {
-  logger.info("Server is running on port 3000");
+app.listen(config.port, () => {
+  logger.info(`Server is running on port ${config.port}`);
 });
 
 process.on('uncaughtException', (err) => {

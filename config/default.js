@@ -3,6 +3,7 @@ export default {
         host: "localhost"
     },
     logLevel: "info",
-    secretBasicAuthToken: process.env.SECRET_TOKEN || 'password',
+    secretToken: process.env.SECRET_TOKEN || 'password',
     rootDomain: process.env.ROOT_DOMAIN || 'nos.social',
+    port: 3000,
 };

@@ -1,4 +1,5 @@
 import express, { json } from 'express';
+import config from '../config/index.js';
 import redisClient from './redisClient.js';
 import routes from './routes.js';
 import logger from './logger.js';
@@ -11,10 +12,11 @@ app.use(json());
 
 app.use(
     pinoHTTP({
-      logger,
-      useLevel: 'debug',
+        logger,
+        useLevel: config.logLevel,
+        quietReqLogger: true,
     })
-  );
+);
 
 app.use((req, res, next) => {
     req.redis = redisClient;
@@ -24,11 +26,11 @@ app.use((req, res, next) => {
 app.use('/', routes);
 
 app.use((err, req, res, next) => {
-    if (err instanceof AppError) {
-        res.status(err.status).json({ error: err.message });
-    } else {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
+    const status = err.status || err.statusCode || 500;
+    const message = status === 500 ? 'Internal Server Error' : err.message || 'Unknown Error';
+
+    logger.warn(err);
+    res.status(status).json({ error: message });
 });
 
 export default app;

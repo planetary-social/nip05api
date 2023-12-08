@@ -1,13 +1,16 @@
+const pubkeyPattern = "^[a-fA-F0-9]{64}$";
+const namePattern = "^[a-z0-9\-_.]+$";
+
 export const postNip05 = {
     target: "body",
     schema: {
         type: "object",
         properties: {
-            name: { type: "string" },
+            name: { type: "string", pattern: namePattern },
             data: {
                 type: "object",
                 properties: {
-                    pubkey: { type: "string", pattern: "^[a-fA-F0-9]{64}$" },
+                    pubkey: { type: "string", pattern: pubkeyPattern },
                     relays: {
                         type: "array",
                         items: { type: "string", format: "uri" }
@@ -27,7 +30,7 @@ export const getNip05 = {
     schema: {
         type: "object",
         properties: {
-            name: { type: "string" },
+            name: { type: "string", pattern: namePattern },
         },
         required: ["name"],
         additionalProperties: false,

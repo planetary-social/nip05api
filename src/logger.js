@@ -5,14 +5,18 @@ const transport = _transport({
   targets: [
     {
       target: 'pino-pretty',
+      options: {
+        colorize: true,
+        minimumLevel: config.logLevel,
+      }
     },
   ],
 });
 
-export default pino(
-  {
-    level: config.logLevel || 'info',
-    timestamp: stdTimeFunctions.isoTime,
-  },
+console.log(config.logLevel);
+export default pino({
+  level: config.logLevel,
+  timestamp: stdTimeFunctions.isoTime,
+},
   transport
 );
