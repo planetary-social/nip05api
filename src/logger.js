@@ -13,7 +13,6 @@ const transport = _transport({
   ],
 });
 
-console.log(config.logLevel);
 export default pino({
   level: config.logLevel,
   timestamp: stdTimeFunctions.isoTime,
