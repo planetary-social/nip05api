@@ -3,7 +3,7 @@ import asyncHandler from "./middlewares/asyncHandler.js";
 import validateSchema from "./middlewares/validateSchema.js";
 import extractSubdomains from "./middlewares/extractSubdomains.js";
 import logger from "./logger.js";
-import { postNip05, getNip05 } from "./schemas.js";
+import { postNip05, nip05QueryName as nip05QueryName } from "./schemas.js";
 import nip98Auth from "./middlewares/nip98Auth.js";
 import { AppError } from "./errors.js";
 
@@ -37,14 +37,14 @@ router.post(
     const result = await pipeline.exec();
     logger.info(`Added ${name} with pubkey ${pubkey}`);
 
-    res.status(200).send();
+    res.status(200).json();
   })
 );
 
 router.get(
   "/.well-known/nostr.json",
   extractSubdomains,
-  validateSchema(getNip05),
+  validateSchema(nip05QueryName),
   asyncHandler("getNip05", async (req, res) => {
     const name =
       req.query.name === "_" ? req.nonRootSubdomains : req.query.name;
@@ -63,6 +63,31 @@ router.get(
     response.relays[pubkey] = relays;
 
     res.status(200).json(response);
+  })
+);
+
+router.delete(
+  "/.well-known/nostr.json",
+  extractSubdomains,
+  validateSchema(nip05QueryName),
+  nip98Auth,
+  asyncHandler("deleteNip05", async (req, res) => {
+    const name =
+      req.query.name === "_" ? req.nonRootSubdomains : req.query.name;
+
+    const pubkey = await req.redis.get(`pubkey:${name}`);
+    if (!pubkey) {
+      throw new AppError(404, "Name not found");
+    }
+
+    const pipeline = req.redis.multi();
+    await pipeline.del(`relays:${pubkey}`);
+    await pipeline.del(`pubkey:${name}`);
+    await pipeline.exec();
+
+    logger.info(`Deleted ${name} with pubkey ${pubkey}`);
+
+    res.status(200).json();
   })
 );
 

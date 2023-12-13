@@ -25,7 +25,7 @@ export const postNip05 = {
     }
 };
 
-export const getNip05 = {
+export const nip05QueryName = {
     target: "query",
     schema: {
         type: "object",
