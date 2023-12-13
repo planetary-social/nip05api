@@ -9,11 +9,11 @@
 - Docker (for local Redis setup)
 
 ### Installation
-1. Clone the repository:
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/planetary-social/nip05api.git
    ```
-2. Install dependencies:
+2. **Install dependencies**:
    ```bash
    pnpm install
    ```
@@ -36,9 +36,12 @@ docker-compose up
 ```
 
 ## Usage
-The application supports storing and retrieving Nostr NIP 05 data as follows:
 
-### POST Endpoint Structure
+### POST Endpoint
+
+To securely authenticate POST requests to the `nip05api` endpoint, utilize the [NIP-98](https://github.com/nostr-protocol/nips/blob/master/98.md) HTTP authentication method. This involves creating a signed Nostr event as per NIP 98 specifications, encoding it in base64, and including it in the `Authorization` header.
+
+#### POST Payload Structure
 ```json
 {
   "name": "username",
@@ -50,22 +53,16 @@ The application supports storing and retrieving Nostr NIP 05 data as follows:
 ```
 *Note: The `pubkey` must be in hex format.*
 
-## Authentication for POST Requests through NIP-98
-
-To securely authenticate POST requests to the `nip05api` endpoint, utilize the [NIP-98](https://github.com/nostr-protocol/nips/blob/master/98.md) HTTP authentication method. This involves creating a signed Nostr event as per NIP 98 specifications, encoding it in base64, and including it in the `Authorization` header.
-
-### Example Using `nak` for Command-Line Testing
+#### Example Using `nak` for Command-Line Testing
 
 `nak`, the [Nostr army knife](https://github.com/fiatjaf/nak), can be used to conveniently generate and encode these authentication events for command-line testing:
 
 1. **Generate the Base64 Encoded Authentication Event**:
-   Create a NIP-98 event using `nak` and encode it in base64.
    ```sh
    export BASE64_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='POST' -t u='http://nos.social/.well-known/nostr.json' --sec $SECRET_KEY | base64)
    ```
 
 2. **Testing the Endpoint with Curl**:
-   Send a POST request to your API including the NIP-98 authentication event in the `Authorization` header.
    ```sh
    curl http://localhost:3000/.well-known/nostr.json 
        -H "Host: nos.social" 
@@ -76,7 +73,26 @@ To securely authenticate POST requests to the `nip05api` endpoint, utilize the [
 
 *Note: Replace `$SECRET_KEY` with your private key used for signing the event. The public key corresponding to this secret key should match the `AUTH_PUBKEY` value.*
 
-This method demonstrates how to securely authenticate POST requests using the NIP-98 standard. In practice, the creation and encoding of these events would typically be integrated into your application's authentication flow.
+### DELETE Endpoint
+
+You can also delete an entry using the DELETE method. Here's an example of how to do it using `nak` and `curl`:
+
+```sh
+export BASE64_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='DELETE' -t u='http://nos.social/.well-known/nostr.json?name=alice' --sec $SECRET_KEY | base64)
+
+curl -X DELETE http://localhost:3000/.well-known/nostr.json?name=alice 
+    -H "Host: nos.social" 
+    -H "Content-Type: application/json" 
+    -H "Authorization: Nostr $BASE64_AUTH_EVENT"
+```
+
+### GET Endpoint
+
+The get endpoint implements Nip-05 functionality. No authentication is required for this one:
+
+```sh
+curl -H 'Host: nos.social' http://127.0.0.1:3000/.well-known/nostr.json?name=alice
+```
 
 ## Contributing
 Contributions are welcome! Fork the project, submit pull requests, or report issues.
