@@ -21,6 +21,7 @@
 ### Configuring the Environment
 - Set `AUTH_PUBKEY` to the hexadecimal public key that matches the one used in the [NIP-98](https://github.com/nostr-protocol/nips/blob/master/98.md) authentication event. This public key should correspond to the private key used for signing the auth event.
 - Set `ROOT_DOMAIN` (e.g., `nos.social`) to prevent treating subdomains that are part of the root domain as user names.
+- Set `REDIS_HOST` to the Redis host you use.
 
 ### Running the Tests
 Confirm the setup with:
