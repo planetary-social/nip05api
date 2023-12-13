@@ -1,6 +1,21 @@
+// Make production env explicit, no defaults
+if (process.env.NODE_ENV === "production") {
+    if (!process.env.AUTH_PUBKEY) {
+        throw new Error("AUTH_PUBKEY environment variable is not set");
+    }
+
+    if (!process.env.ROOT_DOMAIN) {
+        throw new Error("ROOT_DOMAIN environment variable is not set");
+    }
+
+    if (!process.env.REDIS_HOST) {
+        throw new Error("REDIS_HOST environment variable is not set");
+    }
+}
+
 export default {
     redis: {
-        host: "localhost"
+        host: process.env.REDIS_HOST || "localhost",
     },
     logLevel: "info",
     rootDomain: process.env.ROOT_DOMAIN || 'nos.social',

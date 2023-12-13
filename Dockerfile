@@ -7,15 +7,14 @@ WORKDIR /usr/app
 COPY package.json ./
 COPY pnpm-lock.yaml ./
 
-RUN pnpm install
+RUN pnpm install --prod
 
 COPY src ./src
-
 COPY config ./config
 
 EXPOSE 3000
 
-ARG NODE_ENV=development
-ENV NODE_ENV ${NODE_ENV}
+# Set as development by default for local testing, override with -e NODE_ENV=production
+ENV NODE_ENV=development
 
 CMD ["node", "./src/server.js"]

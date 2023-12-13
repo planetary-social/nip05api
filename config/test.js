@@ -1,6 +1,6 @@
 export default {
     redis: {
-        db: 2
+        db: 2,
     },
     logLevel: "fatal",
 };
