@@ -1,13 +1,11 @@
 import { validateEvent, verifySignature } from "nostr-tools";
 import crypto from "crypto";
 import asyncHandler from "./asyncHandler.js";
-import { AppError } from "../errors.js";
+import { AppError, UNAUTHORIZED_STATUS } from "../errors.js";
 import config from "../../config/index.js";
 
 const NIP98_EVENT_KIND = 27235;
-const UNAUTHORIZED_STATUS = 401;
-
-export default function nip98Auth(req, res, next) {
+export default function nip98Auth(customRule) {
   return asyncHandler("nip98Auth", async (req, res) => {
     const authHeader = req.headers.authorization;
 
@@ -25,11 +23,17 @@ export default function nip98Auth(req, res, next) {
     const event = JSON.parse(eventJSON);
 
     validateNip98Event(event, req);
-  })(req, res, next);
+    if (customRule) {
+      await customRule(event, req);
+    } else {
+      logger.warn("No custom NIP-98 authentication rule specified. It is recommended to restrict the endpoint through some pubkey based rules.");
+    }
+
+    req.nip98AuthEvent = event;
+  });
 }
 
 function validateNip98Event(event, req) {
-  validatePubkey(event);
   validateEventKind(event);
   validateEventTimestamp(event);
   validateEventUrl(event, req);
@@ -42,15 +46,6 @@ function validateNip98Event(event, req) {
 
   if (!verifySignature(event)) {
     throw new AppError(UNAUTHORIZED_STATUS, "NIP-98: Invalid signature.");
-  }
-}
-
-function validatePubkey(event) {
-  if (event.pubkey !== config.authPubkey) {
-    throw new AppError(
-      UNAUTHORIZED_STATUS,
-      `NIP-98: pubkey should be '${config.authPubkey}'.`
-    );
   }
 }
 

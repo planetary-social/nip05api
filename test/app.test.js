@@ -1,7 +1,8 @@
 import request from "supertest";
 import redisClient from "../src/redisClient.js";
 import app from "../src/app.js";
-import { getNip98AuthToken, testPubkey, createUserData } from './testUtils.js';
+import config from "../config/index.js";
+import { getNip98AuthToken, createUserData } from './testUtils.js';
 
 const nip98PostAuthToken = getNip98AuthToken({
   kind: 27235,
@@ -11,7 +12,18 @@ const nip98PostAuthToken = getNip98AuthToken({
     ["method", "POST"],
   ],
   content: '',
-  pubkey: testPubkey,
+  pubkey: config.servicePubkey,
+});
+
+const nip98PostAuthTokenDomain = getNip98AuthToken({
+  kind: 27235,
+  created_at: Math.floor(Date.now() / 1000),
+  tags: [
+    ["u", "http://bob.nos.social/.well-known/nostr.json"],
+    ["method", "POST"],
+  ],
+  content: '',
+  pubkey: config.servicePubkey,
 });
 
 beforeEach(async () => {
@@ -20,7 +32,7 @@ beforeEach(async () => {
 
 describe("Nostr NIP 05 API tests", () => {
   it("should validate the correct schema", async () => {
-    const invalidUserData = createUserData("bo b");
+    const invalidUserData = createUserData({name: "bo b"});
 
     await request(app)
       .post("/.well-known/nostr.json")
@@ -39,7 +51,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should store and retrieve Nostr NIP 05 data dynamically through the name query param", async () => {
-    const userData = createUserData("bob");
+    const userData = createUserData({name: "bob"});
 
     await request(app)
       .post("/.well-known/nostr.json")
@@ -57,21 +69,22 @@ describe("Nostr NIP 05 API tests", () => {
     const jsonResponse = JSON.parse(getResponse.text);
 
     expect(jsonResponse).toEqual({
-      names: { bob: testPubkey },
+      names: { bob: config.servicePubkey },
       relays: {
-        [testPubkey]: ["wss://relay1.com", "wss://relay2.com"],
+        [config.servicePubkey]: ["wss://relay1.com", "wss://relay2.com"],
       },
     });
   });
 
   it("should store and retrieve Nostr NIP 05 data through the subdomain", async () => {
-    const userData = createUserData("bob");
+    const userData = createUserData({name: "_"});
 
     await request(app)
       .post("/.well-known/nostr.json")
-      .set("Host", "nos.social")
-      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
-      .send(userData);
+      .set("Host", "bob.nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthTokenDomain}`)
+      .send(userData)
+      .expect(200);
 
     const getResponse = await request(app)
       .get("/.well-known/nostr.json")
@@ -82,15 +95,15 @@ describe("Nostr NIP 05 API tests", () => {
     const jsonResponse = JSON.parse(getResponse.text);
 
     expect(jsonResponse).toEqual({
-      names: { bob: testPubkey },
+      names: { bob: config.servicePubkey },
       relays: {
-        [testPubkey]: ["wss://relay1.com", "wss://relay2.com"],
+        [config.servicePubkey]: ["wss://relay1.com", "wss://relay2.com"],
       },
     });
   });
 
   it("should not use components of the root domain as a subdomain", async () => {
-    const userData = createUserData("nos");
+    const userData = createUserData({name: "nos"});
 
     await request(app)
       .post("/.well-known/nostr.json")
@@ -106,7 +119,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should fail to overwrite the pubkey if the name is already taken", async () => {
-    const userData = createUserData("bob");
+    const userData = createUserData({name: "bob"});
 
      await request(app)
       .post("/.well-known/nostr.json")
@@ -115,7 +128,7 @@ describe("Nostr NIP 05 API tests", () => {
       .send(userData)
       .expect(200);
 
-     userData.data.pubkey = testPubkey.replace("1", "2");
+     userData.data.pubkey = config.servicePubkey.replace("1", "2");
 
      await request(app)
       .post("/.well-known/nostr.json")
@@ -129,7 +142,7 @@ describe("Nostr NIP 05 API tests", () => {
     let nip98DeleteAuthToken;
 
     beforeEach(async () => {
-      const userData = createUserData("bob");
+      const userData = createUserData({name: "bob"});
 
       await request(app)
         .post("/.well-known/nostr.json")
@@ -145,7 +158,7 @@ describe("Nostr NIP 05 API tests", () => {
           ["method", "DELETE"],
         ],
         content: '',
-        pubkey: testPubkey,
+        pubkey: config.servicePubkey,
       });
     });
 
@@ -173,7 +186,7 @@ describe("Nostr NIP 05 API tests", () => {
           ["method", "DELETE"],
         ],
         content: '',
-        pubkey: testPubkey,
+        pubkey: config.servicePubkey,
       });
 
       await request(app)
