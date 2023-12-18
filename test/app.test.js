@@ -2,28 +2,15 @@ import request from "supertest";
 import redisClient from "../src/redisClient.js";
 import app from "../src/app.js";
 import config from "../config/index.js";
-import { getNip98AuthToken, createUserData } from './testUtils.js';
+import { getNip98AuthToken, createUserData } from "./testUtils.js";
 
-const nip98PostAuthToken = getNip98AuthToken({
-  kind: 27235,
-  created_at: Math.floor(Date.now() / 1000),
-  tags: [
-    ["u", "http://nos.social/.well-known/nostr.json"],
-    ["method", "POST"],
-  ],
-  content: '',
-  pubkey: config.servicePubkey,
+const nip98PostAuthToken = await getNip98AuthToken({
+  url: "http://nos.social/.well-known/nostr.json",
+  method: "POST",
 });
-
-const nip98PostAuthTokenDomain = getNip98AuthToken({
-  kind: 27235,
-  created_at: Math.floor(Date.now() / 1000),
-  tags: [
-    ["u", "http://bob.nos.social/.well-known/nostr.json"],
-    ["method", "POST"],
-  ],
-  content: '',
-  pubkey: config.servicePubkey,
+const nip98PostAuthTokenDomain = await getNip98AuthToken({
+  url: "http://bob.nos.social/.well-known/nostr.json",
+  method: "POST",
 });
 
 beforeEach(async () => {
@@ -32,7 +19,7 @@ beforeEach(async () => {
 
 describe("Nostr NIP 05 API tests", () => {
   it("should validate the correct schema", async () => {
-    const invalidUserData = createUserData({name: "bo b"});
+    const invalidUserData = createUserData({ name: "bo b" });
 
     await request(app)
       .post("/.well-known/nostr.json")
@@ -43,7 +30,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should fail with a forbidden name", async () => {
-    const userData = createUserData({name: "xxx"});
+    const userData = createUserData({ name: "xxx" });
 
     await request(app)
       .post("/.well-known/nostr.json")
@@ -52,7 +39,6 @@ describe("Nostr NIP 05 API tests", () => {
       .send(userData)
       .expect(422);
   });
-
 
   it("should fail if the name is not found", async () => {
     await request(app)
@@ -63,7 +49,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should store and retrieve Nostr NIP 05 data dynamically through the name query param", async () => {
-    const userData = createUserData({name: "bob"});
+    const userData = createUserData({ name: "bob" });
 
     await request(app)
       .post("/.well-known/nostr.json")
@@ -89,7 +75,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should store and retrieve Nostr NIP 05 data through the subdomain", async () => {
-    const userData = createUserData({name: "_"});
+    const userData = createUserData({ name: "_" });
 
     await request(app)
       .post("/.well-known/nostr.json")
@@ -115,7 +101,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should not use components of the root domain as a subdomain", async () => {
-    const userData = createUserData({name: "nos"});
+    const userData = createUserData({ name: "nos" });
 
     await request(app)
       .post("/.well-known/nostr.json")
@@ -131,18 +117,18 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should fail to overwrite the pubkey if the name is already taken", async () => {
-    const userData = createUserData({name: "bob"});
+    const userData = createUserData({ name: "bob" });
 
-     await request(app)
+    await request(app)
       .post("/.well-known/nostr.json")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98PostAuthToken}`)
       .send(userData)
       .expect(200);
 
-     userData.data.pubkey = config.servicePubkey.replace("1", "2");
+    userData.data.pubkey = config.servicePubkey.replace("1", "2");
 
-     await request(app)
+    await request(app)
       .post("/.well-known/nostr.json")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98PostAuthToken}`)
@@ -150,11 +136,11 @@ describe("Nostr NIP 05 API tests", () => {
       .expect(409);
   });
 
-  describe('event deletion', () => {
+  describe("event deletion", () => {
     let nip98DeleteAuthToken;
 
     beforeEach(async () => {
-      const userData = createUserData({name: "bob"});
+      const userData = createUserData({ name: "bob" });
 
       await request(app)
         .post("/.well-known/nostr.json")
@@ -162,15 +148,9 @@ describe("Nostr NIP 05 API tests", () => {
         .set("Authorization", `Nostr ${nip98PostAuthToken}`)
         .send(userData);
 
-      nip98DeleteAuthToken = getNip98AuthToken({
-        kind: 27235,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [
-          ["u", "http://nos.social/.well-known/nostr.json?name=bob"],
-          ["method", "DELETE"],
-        ],
-        content: '',
-        pubkey: config.servicePubkey,
+      nip98DeleteAuthToken = await getNip98AuthToken({
+        url: "http://nos.social/.well-known/nostr.json?name=bob",
+        method: "DELETE",
       });
     });
 
@@ -190,15 +170,9 @@ describe("Nostr NIP 05 API tests", () => {
     });
 
     it("should be possible to delete an entry with correct credentials using the domain format", async () => {
-      const nip98DeleteAuthTokenDomain = getNip98AuthToken({
-        kind: 27235,
-        created_at: Math.floor(Date.now() / 1000),
-        tags: [
-          ["u", "http://bob.nos.social/.well-known/nostr.json?name=_"],
-          ["method", "DELETE"],
-        ],
-        content: '',
-        pubkey: config.servicePubkey,
+      const nip98DeleteAuthTokenDomain = await getNip98AuthToken({
+        url: "http://bob.nos.social/.well-known/nostr.json?name=_",
+        method: "DELETE",
       });
 
       await request(app)
