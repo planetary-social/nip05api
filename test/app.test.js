@@ -17,6 +17,10 @@ beforeEach(async () => {
   await redisClient.flushdb();
 });
 
+afterAll(async () => {
+  await redisClient.quit();
+});
+
 describe("Nostr NIP 05 API tests", () => {
   it("should validate the correct schema", async () => {
     const invalidUserData = createUserData({ name: "bo b" });

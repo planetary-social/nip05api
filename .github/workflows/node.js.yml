@@ -13,10 +13,10 @@ jobs:
           - 6379:6379
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Set up Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v4
       with:
         node-version: '20.10.0'
 
@@ -24,4 +24,4 @@ jobs:
       run: npm install
 
     - name: Run Jest tests
-      run: node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --coverage
+      run: node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage

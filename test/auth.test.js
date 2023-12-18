@@ -23,6 +23,10 @@ beforeEach(async () => {
   await redisClient.flushdb();
 });
 
+afterAll(async () => {
+  await redisClient.quit();
+});
+
 describe("Nostr 98 Auth tests", () => {
   it("should succeed with correct auth event", async () => {
     const userData = createUserData({ name: "bob" });
