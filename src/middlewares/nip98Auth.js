@@ -23,6 +23,7 @@ export default function nip98Auth(customRule) {
     try {
       await nip98.validateEvent(event, fullUrl, req.method);
 
+      // istanbul ignore next
       if (customRule) {
         await customRule(event, req);
       } else {

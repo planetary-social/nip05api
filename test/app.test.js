@@ -23,6 +23,16 @@ afterAll(async () => {
 });
 
 describe("Nostr NIP 05 API tests", () => {
+  it("should properly handle 500 errors", async () => {
+    const response = await request(app)
+      .get("/test/error")
+      .set("Host", "nos.social")
+      .query({ name: "somename" });
+
+    expect(response.status).toEqual(500);
+    expect(response.body).toEqual({ error: "Internal Server Error" });
+  });
+
   it("should validate the correct schema", async () => {
     const invalidUserData = createUserData({ name: "bo b" });
 
@@ -119,6 +129,22 @@ describe("Nostr NIP 05 API tests", () => {
       .set("Host", "nos.social")
       .query({ name: "_" })
       .expect(404);
+  });
+
+  it("should fail if url doesn't end with root domain", async () => {
+    const userData = createUserData({ name: "nos" });
+
+    await request(app)
+      .post("/.well-known/nostr.json")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData);
+
+    const getResponse = await request(app)
+      .get("/.well-known/nostr.json")
+      .set("Host", "nos.social.somethingmore")
+      .query({ name: "_" })
+      .expect(422);
   });
 
   it("should fail to overwrite the pubkey if the name is already taken", async () => {

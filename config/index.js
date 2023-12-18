@@ -11,7 +11,7 @@ const configs = {
 };
 
 export default (function config() {
-    const env = process.env.NODE_ENV || 'development';
+    const env = process.env.NODE_ENV;
     const envConfig = configs[env];
 
     return deepmerge(_default.default, envConfig);

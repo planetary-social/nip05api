@@ -93,16 +93,27 @@ router.delete(
   })
 );
 
- /**
+if (process.env.NODE_ENV === "test") {
+  router.get(
+    "/test/error",
+    validateSchema(nip05QueryName),
+    extractNip05Name,
+    asyncHandler("testError", async (req, res) => {
+      throw new Error("Test error");
+    })
+  );
+}
+
+/**
  * Validates the authentication pubkey for a NIP-98 event based on our application-specific rules.
- * 
+ *
  * The authentication pubkey must satisfy one of the following conditions:
  * 1. If it matches 'servicePubkey', which we own, there's no need to verify the target
  *    pubkey for the account being modified, any change is allowed by ourselves.
  * 2. If it matches the target pubkey that is being changed, a user's pubkey,
  *    then it must match both the target pubkey stored in our database and the one specified
  *    in the event's body payload.
- * 
+ *
  * @param {Object} authEvent - The authentication event containing the pubkey.
  * @param {Object} req - The request object, containing NIP05 name and body data.
  * @throws {AppError} - Throws specific error depending on the failed validation criteria.
@@ -113,8 +124,12 @@ async function validatePubkey(authEvent, req) {
   const payloadPubkey = req.body?.data?.pubkey;
 
   const isServicePubkey = authEvent.pubkey === config.servicePubkey;
-  const isStoredPubkeyMatch = storedPubkey ? authEvent.pubkey === storedPubkey : true;
-  const isPayloadPubkeyMatch = payloadPubkey ? authEvent.pubkey === payloadPubkey : true;
+  const isStoredPubkeyMatch = storedPubkey
+    ? authEvent.pubkey === storedPubkey
+    : true;
+  const isPayloadPubkeyMatch = payloadPubkey
+    ? authEvent.pubkey === payloadPubkey
+    : true;
 
   if (!isServicePubkey) {
     if (!isStoredPubkeyMatch) {
@@ -130,7 +145,7 @@ async function validatePubkey(authEvent, req) {
       );
     }
   }
-  
+
   if (!isServicePubkey && !(isStoredPubkeyMatch && isPayloadPubkeyMatch)) {
     throw new AppError(
       UNAUTHORIZED_STATUS,
@@ -138,8 +153,5 @@ async function validatePubkey(authEvent, req) {
     );
   }
 }
-
-
-
 
 export default router;

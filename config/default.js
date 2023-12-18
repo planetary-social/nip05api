@@ -1,4 +1,5 @@
 // Make production env explicit, no defaults
+// istanbul ignore next
 if (process.env.NODE_ENV === "production") {
     if (!process.env.AUTH_PUBKEY) {
         throw new Error("AUTH_PUBKEY environment variable is not set");

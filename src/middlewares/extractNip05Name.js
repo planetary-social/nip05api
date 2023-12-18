@@ -26,7 +26,7 @@ function extractName(req) {
 function validateDomain(host) {
   if (!host.endsWith(config.rootDomain)) {
     throw new AppError(
-      400,
+      422,
       `Host mismatch: '${host}' does not conform to the expected root domain '${config.rootDomain}'.`
     );
   }
