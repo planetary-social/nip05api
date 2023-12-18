@@ -1,3 +1,5 @@
+[![Node.js CI](https://github.com/planetary-social/nip05api/actions/workflows/node.js.yml/badge.svg)](https://github.com/planetary-social/nip05api/actions/workflows/node.js.yml)
+
 # nip05api
 
 `nip05api` is a Node.js project implementing [NIP 05](https://github.com/nostr-protocol/nips/blob/master/05.md). It enables the association of Nostr public keys (in hex format) with human-readable names, improving the usability of the Nostr network by simplifying the process of discovering and identifying users.
