@@ -2,9 +2,20 @@ import Ajv from "ajv";
 import addFormats from "ajv-formats";
 import asyncHandler from './asyncHandler.js';
 import { AppError } from '../errors.js';
+import forbiddenNames from './forbiddenNames.js';
 
 const ajv = new Ajv();
 addFormats(ajv);
+
+function validateForbiddenName(schema, data) {
+    return !forbiddenNames.some((regex) => regex.test(data));
+}
+
+ajv.addKeyword({
+  keyword: 'notForbiddenName',
+  validate: validateForbiddenName,
+  errors: false,
+});
 
 export default function validateSchema(schemaInfo) {
     return asyncHandler('validateSchema', async (req, res) => {

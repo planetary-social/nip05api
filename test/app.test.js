@@ -42,6 +42,18 @@ describe("Nostr NIP 05 API tests", () => {
       .expect(422);
   });
 
+  it("should fail with a forbidden name", async () => {
+    const userData = createUserData({name: "xxx"});
+
+    await request(app)
+      .post("/.well-known/nostr.json")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(422);
+  });
+
+
   it("should fail if the name is not found", async () => {
     await request(app)
       .get("/.well-known/nostr.json")
