@@ -1,5 +1,5 @@
 import request from "supertest";
-import redisClient from "../src/redisClient.js";
+import getRedisClient from "../src/getRedisClient.js";
 import app from "../src/app.js";
 import config from "../config";
 import {
@@ -9,6 +9,7 @@ import {
   servicePubkeySecret,
 } from "./testUtils.js";
 
+const redisClient = await getRedisClient();
 export const userPrivateKey =
   "b45556a314c245b020690b0b59f21e4ed394ffa7baedfd65e0927ea19d014220";
 export const userPubkey =

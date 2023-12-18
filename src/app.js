@@ -1,11 +1,12 @@
 import express, { json } from "express";
-import redisClient from "./redisClient.js";
+import getRedisClient from "./getRedisClient.js";
 import routes from "./routes.js";
 import logger from "./logger.js";
 import pinoHTTP from "pino-http";
 import promClient from "prom-client";
 import promBundle from "express-prom-bundle";
 
+const redisClient = await getRedisClient();
 const app = express();
 
 const metricsMiddleware = promBundle({
@@ -35,6 +36,7 @@ app.use("/", routes);
 
 app.use((err, req, res, next) => {
   const status = err.status || err.statusCode || 500;
+  /* istanbul ignore next */
   const message =
     status === 500 ? "Internal Server Error" : err.message || "Unknown Error";
 

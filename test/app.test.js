@@ -1,9 +1,10 @@
 import request from "supertest";
-import redisClient from "../src/redisClient.js";
+import getRedisClient from "../src/getRedisClient.js";
 import app from "../src/app.js";
 import config from "../config/index.js";
 import { getNip98AuthToken, createUserData } from "./testUtils.js";
 
+const redisClient = await getRedisClient();
 const nip98PostAuthToken = await getNip98AuthToken({
   url: "http://nos.social/.well-known/nostr.json",
   method: "POST",

@@ -56,10 +56,10 @@ router.post(
     }
 
     const pipeline = req.redis.multi();
-    await pipeline.set(`pubkey:${name}`, pubkey);
-    await pipeline.del(`relays:${pubkey}`);
+    pipeline.set(`pubkey:${name}`, pubkey);
+    pipeline.del(`relays:${pubkey}`);
     if (relays?.length) {
-      await pipeline.sadd(`relays:${pubkey}`, ...relays);
+      pipeline.sadd(`relays:${pubkey}`, ...relays);
     }
 
     const result = await pipeline.exec();
@@ -83,8 +83,8 @@ router.delete(
     }
 
     const pipeline = req.redis.multi();
-    await pipeline.del(`relays:${pubkey}`);
-    await pipeline.del(`pubkey:${name}`);
+    pipeline.del(`relays:${pubkey}`);
+    pipeline.del(`pubkey:${name}`);
     await pipeline.exec();
 
     logger.info(`Deleted ${name} with pubkey ${pubkey}`);
