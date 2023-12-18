@@ -2,6 +2,7 @@ import { Router } from "express";
 import asyncHandler from "./middlewares/asyncHandler.js";
 import validateSchema from "./middlewares/validateSchema.js";
 import extractNip05Name from "./middlewares/extractNip05Name.js";
+import httpRequestCounter from "./middlewares/httpRequestCounter.js";
 import logger from "./logger.js";
 import { postNip05, nip05QueryName as nip05QueryName } from "./schemas.js";
 import nip98Auth from "./middlewares/nip98Auth.js";
