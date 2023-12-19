@@ -5,7 +5,6 @@ import config from "../config";
 import {
   getNip98AuthToken,
   createUserData,
-  signEvent,
   servicePubkeySecret,
 } from "./testUtils.js";
 

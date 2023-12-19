@@ -5,6 +5,7 @@ import {
   getPublicKey,
 } from "nostr-tools";
 
+// This is just a test keypair, don't use it in production
 export const servicePubkeySecret =
   "7b7758822041766ddfce561464136a3101ed228a1a5c34a01592d323440217ba";
 

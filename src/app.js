@@ -5,6 +5,7 @@ import logger from "./logger.js";
 import pinoHTTP from "pino-http";
 import promClient from "prom-client";
 import promBundle from "express-prom-bundle";
+import cors from "cors";
 
 const redisClient = await getRedisClient();
 const app = express();
@@ -17,6 +18,7 @@ const metricsMiddleware = promBundle({
 });
 
 app.use(json());
+app.use(cors());
 
 app.use(
   pinoHTTP({

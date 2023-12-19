@@ -12,6 +12,11 @@ const configs = {
 
 export default (function config() {
     const env = process.env.NODE_ENV;
+
+    if (!env) {
+        throw new Error('NODE_ENV environment variable is not set');
+    }
+
     const envConfig = configs[env];
 
     return deepmerge(_default.default, envConfig);

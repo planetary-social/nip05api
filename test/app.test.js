@@ -63,6 +63,14 @@ describe("Nostr NIP 05 API tests", () => {
       .expect(404);
   });
 
+  it("should include cors header in the response", async () => {
+    await request(app)
+      .get("/.well-known/nostr.json")
+      .set("Host", "nos.social")
+      .query({ name: "somename" })
+      .expect("Access-Control-Allow-Origin", "*");
+  });
+
   it("should store and retrieve Nostr NIP 05 data dynamically through the name query param", async () => {
     const userData = createUserData({ name: "bob" });
 
