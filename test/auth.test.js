@@ -15,7 +15,7 @@ export const userPubkey =
   "464db1ec23b1a5da9ef3df411ba555276b1af85f069a6aee3e2ce996dda7ae58";
 
 const nip98AuthToken = await getNip98AuthToken({
-  url: "http://nos.social/.well-known/nostr.json",
+  url: "http://nos.social/api/names",
   method: "POST",
 });
 
@@ -32,7 +32,7 @@ describe("Nostr 98 Auth tests", () => {
     const userData = createUserData({ name: "bob" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98AuthToken}`)
       .send(userData)
@@ -43,7 +43,7 @@ describe("Nostr 98 Auth tests", () => {
     const userData = createUserData({ name: "bob" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .send(userData)
       .expect(401);
@@ -54,7 +54,7 @@ describe("Nostr 98 Auth tests", () => {
       kind: 27235,
       created_at: Math.floor(Date.now() / 1000),
       tags: [
-        ["u", "http://nos.social/.well-known/nostr.json"],
+        ["u", "http://nos.social/api/names"],
         ["method", "POST"],
       ],
       content: "",
@@ -68,7 +68,7 @@ describe("Nostr 98 Auth tests", () => {
     const userData = createUserData({ name: "bob" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98InvalidAuthToken}`)
       .send(userData)
@@ -77,14 +77,14 @@ describe("Nostr 98 Auth tests", () => {
 
   it("should fail to post with wrong pubkey", async () => {
     const authToken = await getNip98AuthToken({
-      url: "http://nos.social/.well-known/nostr.json",
+      url: "http://nos.social/api/names",
       method: "POST",
       secret: servicePubkeySecret.replace("1", "2"),
     });
     const userData = createUserData({ name: "bob" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${authToken}`)
       .send(userData)
@@ -93,14 +93,14 @@ describe("Nostr 98 Auth tests", () => {
 
   it("should not fail to POST if the pubkey used for auth is the same that is being changed", async () => {
     const authToken = await getNip98AuthToken({
-      url: "http://nos.social/.well-known/nostr.json",
+      url: "http://nos.social/api/names",
       method: "POST",
       secret: userPrivateKey,
     });
     const userData = createUserData({ name: "bob", pubkey: userPubkey });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${authToken}`)
       .send(userData)
@@ -109,13 +109,13 @@ describe("Nostr 98 Auth tests", () => {
 
   it("should fail to post with wrong method", async () => {
     const authToken = await getNip98AuthToken({
-      url: "http://nos.social/.well-known/nostr.json",
+      url: "http://nos.social/api/names",
       method: "GET",
     });
     const userData = createUserData({ name: "bob" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${authToken}`)
       .send(userData)
@@ -124,13 +124,13 @@ describe("Nostr 98 Auth tests", () => {
 
   it("should fail to post with wrong url", async () => {
     const authToken = await getNip98AuthToken({
-      url: "http://wrong.nos.social/.well-known/nostr.json",
+      url: "http://wrong.nos.social/api/names",
       method: "POST",
     });
     const userData = createUserData({ name: "bob" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${authToken}`)
       .send(userData)
@@ -139,28 +139,27 @@ describe("Nostr 98 Auth tests", () => {
 
   it("should not fail to DELETE if the pubkey mapped to the selected name is matching the auth pubkey", async () => {
     const postAuthToken = await getNip98AuthToken({
-      url: "http://nos.social/.well-known/nostr.json",
+      url: "http://nos.social/api/names",
       method: "POST",
       secret: userPrivateKey,
     });
     const userData = createUserData({ name: "bob", pubkey: userPubkey });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${postAuthToken}`)
       .send(userData)
       .expect(200);
 
     const deleteAuthToken = await getNip98AuthToken({
-      url: "http://nos.social/.well-known/nostr.json?name=bob",
+      url: "http://nos.social/api/names/bob",
       method: "DELETE",
       secret: userPrivateKey,
     });
 
     await request(app)
-      .delete("/.well-known/nostr.json")
-      .query({ name: "bob" })
+      .delete("/api/names/bob")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${deleteAuthToken}`)
       .expect(200);
@@ -169,7 +168,7 @@ describe("Nostr 98 Auth tests", () => {
   it("should fail if the event is too old", async () => {
     const yesterday = new Date().getDate() - 1;
     const authToken = await getNip98AuthToken({
-      url: "http://nos.social/.well-known/nostr.json",
+      url: "http://nos.social/api/names",
       method: "POST",
       eventModifier: (event) => {
         event.created_at = yesterday;
@@ -180,7 +179,7 @@ describe("Nostr 98 Auth tests", () => {
     const userData = createUserData({ name: "bob" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${authToken}`)
       .send(userData)

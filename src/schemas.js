@@ -36,3 +36,15 @@ export const nip05QueryName = {
     additionalProperties: false,
   },
 };
+
+export const nip05ParamsName = {
+  target: "params",
+  schema: {
+    type: "object",
+    properties: {
+      name: { type: "string", pattern: namePattern },
+    },
+    required: ["name"],
+    additionalProperties: false,
+  },
+};
