@@ -55,12 +55,12 @@ To securely authenticate POST requests to the `nip05api` endpoint, utilize the [
 
 1. **Generate the Base64 Encoded Authentication Event**:
    ```sh
-   export BASE64_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='POST' -t u='http://nos.social/.well-known/nostr.json' --sec $SECRET_KEY | base64)
+   export BASE64_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='POST' -t u='http://nos.social/api/names' --sec $SECRET_KEY | base64)
    ```
 
 2. **Testing the Endpoint with Curl**:
    ```sh
-   curl http://localhost:3000/.well-known/nostr.json 
+   curl http://localhost:3000/api/names 
        -H "Host: nos.social" 
        -H "Content-Type: application/json" 
        -H "Authorization: Nostr $BASE64_AUTH_EVENT" 
@@ -74,9 +74,9 @@ To securely authenticate POST requests to the `nip05api` endpoint, utilize the [
 You can also delete an entry using the DELETE method. Here's an example of how to do it using `nak` and `curl`:
 
 ```sh
-export BASE64_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='DELETE' -t u='http://nos.social/.well-known/nostr.json?name=alice' --sec $SECRET_KEY | base64)
+export BASE64_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='DELETE' -t u='http://nos.social/.well-known/api/names/alice' --sec $SECRET_KEY | base64)
 
-curl -X DELETE http://localhost:3000/.well-known/nostr.json?name=alice 
+curl -X DELETE http://localhost:3000/api/names/alice 
     -H "Host: nos.social" 
     -H "Content-Type: application/json" 
     -H "Authorization: Nostr $BASE64_AUTH_EVENT"

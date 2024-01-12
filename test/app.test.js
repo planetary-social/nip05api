@@ -6,11 +6,11 @@ import { getNip98AuthToken, createUserData } from "./testUtils.js";
 
 const redisClient = await getRedisClient();
 const nip98PostAuthToken = await getNip98AuthToken({
-  url: "http://nos.social/.well-known/nostr.json",
+  url: "http://nos.social/api/names",
   method: "POST",
 });
 const nip98PostAuthTokenDomain = await getNip98AuthToken({
-  url: "http://bob.nos.social/.well-known/nostr.json",
+  url: "http://bob.nos.social/api/names",
   method: "POST",
 });
 
@@ -37,7 +37,7 @@ describe("Nostr NIP 05 API tests", () => {
     const invalidUserData = createUserData({ name: "bo b" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98PostAuthToken}`)
       .send(invalidUserData)
@@ -48,7 +48,7 @@ describe("Nostr NIP 05 API tests", () => {
     const userData = createUserData({ name: "xxx" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98PostAuthToken}`)
       .send(userData)
@@ -65,7 +65,7 @@ describe("Nostr NIP 05 API tests", () => {
 
   it("should include cors header in the response", async () => {
     await request(app)
-      .get("/.well-known/nostr.json")
+      .get("/api/names")
       .set("Host", "nos.social")
       .query({ name: "somename" })
       .expect("Access-Control-Allow-Origin", "*");
@@ -75,7 +75,7 @@ describe("Nostr NIP 05 API tests", () => {
     const userData = createUserData({ name: "bob" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98PostAuthToken}`)
       .send(userData)
@@ -101,7 +101,7 @@ describe("Nostr NIP 05 API tests", () => {
     const userData = createUserData({ name: "_" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "bob.nos.social")
       .set("Authorization", `Nostr ${nip98PostAuthTokenDomain}`)
       .send(userData)
@@ -127,7 +127,7 @@ describe("Nostr NIP 05 API tests", () => {
     const userData = createUserData({ name: "nos" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98PostAuthToken}`)
       .send(userData);
@@ -143,7 +143,7 @@ describe("Nostr NIP 05 API tests", () => {
     const userData = createUserData({ name: "nos" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98PostAuthToken}`)
       .send(userData);
@@ -159,7 +159,7 @@ describe("Nostr NIP 05 API tests", () => {
     const userData = createUserData({ name: "bob" });
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98PostAuthToken}`)
       .send(userData)
@@ -168,7 +168,7 @@ describe("Nostr NIP 05 API tests", () => {
     userData.data.pubkey = config.servicePubkey.replace("1", "2");
 
     await request(app)
-      .post("/.well-known/nostr.json")
+      .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98PostAuthToken}`)
       .send(userData)
@@ -182,23 +182,22 @@ describe("Nostr NIP 05 API tests", () => {
       const userData = createUserData({ name: "bob" });
 
       await request(app)
-        .post("/.well-known/nostr.json")
+        .post("/api/names")
         .set("Host", "nos.social")
         .set("Authorization", `Nostr ${nip98PostAuthToken}`)
         .send(userData);
 
       nip98DeleteAuthToken = await getNip98AuthToken({
-        url: "http://nos.social/.well-known/nostr.json?name=bob",
+        url: "http://nos.social/api/names/bob",
         method: "DELETE",
       });
     });
 
     it("should be possible to delete an entry with correct credentials using the @ format", async () => {
       await request(app)
-        .delete("/.well-known/nostr.json")
+        .delete("/api/names/bob")
         .set("Host", "nos.social")
         .set("Authorization", `Nostr ${nip98DeleteAuthToken}`)
-        .query({ name: "bob" })
         .expect(200);
 
       await request(app)
@@ -210,19 +209,18 @@ describe("Nostr NIP 05 API tests", () => {
 
     it("should be possible to delete an entry with correct credentials using the domain format", async () => {
       const nip98DeleteAuthTokenDomain = await getNip98AuthToken({
-        url: "http://bob.nos.social/.well-known/nostr.json?name=_",
+        url: "http://bob.nos.social/api/names/_",
         method: "DELETE",
       });
 
       await request(app)
-        .delete("/.well-known/nostr.json")
+        .delete("/api/names/_")
         .set("Host", "bob.nos.social")
         .set("Authorization", `Nostr ${nip98DeleteAuthTokenDomain}`)
-        .query({ name: "_" })
         .expect(200);
 
       await request(app)
-        .get("/.well-known/nostr.json")
+        .get("/api/names")
         .set("Host", "nos.social")
         .query({ name: "bob" })
         .expect(404);
@@ -230,10 +228,9 @@ describe("Nostr NIP 05 API tests", () => {
 
     it("should fail with wrong credentials", async () => {
       await request(app)
-        .delete("/.well-known/nostr.json")
+        .delete("/api/names/bob")
         .set("Host", "nos.social")
         .set("Authorization", `Nostr ${nip98PostAuthToken}`)
-        .query({ name: "bob" })
         .expect(401);
     });
   });

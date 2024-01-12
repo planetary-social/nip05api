@@ -3,7 +3,7 @@ import asyncHandler from "./middlewares/asyncHandler.js";
 import validateSchema from "./middlewares/validateSchema.js";
 import extractNip05Name from "./middlewares/extractNip05Name.js";
 import logger from "./logger.js";
-import { postNip05, nip05QueryName as nip05QueryName } from "./schemas.js";
+import { postNip05, nip05QueryName, nip05ParamsName } from "./schemas.js";
 import nip98Auth from "./middlewares/nip98Auth.js";
 import config from "../config/index.js";
 import { AppError, UNAUTHORIZED_STATUS } from "./errors.js";
@@ -35,7 +35,7 @@ router.get(
 );
 
 router.post(
-  "/.well-known/nostr.json",
+  "/api/names",
   validateSchema(postNip05),
   extractNip05Name,
   nip98Auth(validatePubkey),
@@ -70,8 +70,8 @@ router.post(
 );
 
 router.delete(
-  "/.well-known/nostr.json",
-  validateSchema(nip05QueryName),
+  "/api/names/:name",
+  validateSchema(nip05ParamsName),
   extractNip05Name,
   nip98Auth(validatePubkey),
   asyncHandler("deleteNip05", async (req, res) => {

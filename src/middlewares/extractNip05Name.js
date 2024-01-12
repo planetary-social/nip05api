@@ -14,7 +14,7 @@ function extractName(req) {
   validateDomain(host);
 
   const nonRootSubdomains = host.split(`.${config.rootDomain}`).find(Boolean);
-  const nameFromQueryOrBody = req.query.name || req.body.name;
+  const nameFromQueryOrBody = req.query.name || req.params.name || req.body.name;
 
   if (nameFromQueryOrBody === "_") {
     return validateAndReturnSubdomain(nonRootSubdomains);
