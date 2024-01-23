@@ -17,6 +17,8 @@ const metricsMiddleware = promBundle({
   includeDefaultMetrics: true,
 });
 
+app.set('trust proxy', true);
+
 app.use(json());
 app.use(cors());
 

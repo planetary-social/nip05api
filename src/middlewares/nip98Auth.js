@@ -16,6 +16,11 @@ export default function nip98Auth(customRule) {
       );
     }
 
+
+    if (req.headers['x-forwarded-proto'] === 'https') {
+      req.protocol = 'https';
+    }
+
     const fullUrl =
       `${req.protocol}` + "://" + `${req.get("host")}${req.originalUrl}`;
     const event = await nip98.unpackEventFromToken(authHeader);
