@@ -1,0 +1,46 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage: $0 NAME NPUB RELAY_URLS..."
+    echo "  NAME       - The name to be used."
+    echo "  NPUB       - The public key."
+    echo "  RELAY_URLS - One or more relay URLs, each as a separate argument."
+    echo "  Note: This script requires the 'pubhex' secret to be set in the NIP05_SEC environment variable."
+    echo "Dependencies:"
+    echo "  nostrkeytool - A tool for NOSTR keys, installable via 'cargo install nostrkeytool' (https://crates.io/crates/nostrkeytool)."
+    echo "  nak - A tool required for authentication, installable via 'go install github.com/fiatjaf/nak@latest' (https://github.com/fiatjaf/nak)."
+    echo ""
+    echo "Example:"
+    echo "  export NIP05_SEC=nsec1j40appu959h3gedew92t9ty05mg32sc4l6e4qvrz80rryu4x7kuqxxx"
+    echo "  $0 daniel npub1djq4m7dnul6rfykzx246qad4lfdk5c9hx88xen78c85t62kue6eqt202pj wss://relay.damus.io wss://relay.nos.social"
+    exit 1
+}
+
+if [ "$#" -lt 3 ]; then
+    usage
+fi
+
+NAME="$1"
+NPUB="$2"
+RELAYS="${@:3}"
+
+RELAYS_JSON_ARRAY=$(printf "%s\n" $RELAYS | jq -R . | jq -s .)
+BASE64_DELETE_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='DELETE' -t u="http://nos.social/.well-known/api/names/$NAME" --sec $NIP05_SEC | base64)
+
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "http://nos.social/api/names/$NAME" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Nostr $BASE64_DELETE_AUTH_EVENT")
+
+PUBKEY=$(nostrkeytool --npub2pubkey $NPUB)
+
+JSON_PAYLOAD=$(jq -n \
+                  --arg name "$NAME" \
+                  --arg pubkey "$PUBKEY" \
+                  --argjson relays "$RELAYS_JSON_ARRAY" \
+                  '{name: $name, data: {pubkey: $pubkey, relays: $relays}}')
+
+BASE64_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='POST' -t u='http://nos.social/api/names' --sec $NIP05_SEC | base64)
+curl -s https://nos.social/api/names \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Nostr $BASE64_AUTH_EVENT" \
+    -d "$JSON_PAYLOAD"
