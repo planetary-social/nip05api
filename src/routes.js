@@ -19,7 +19,7 @@ router.get(
 
     const pubkey = await req.redis.get(`pubkey:${name}`);
     if (!pubkey) {
-      throw new AppError(404, "Name not found");
+      throw new AppError(404, `Name ${name} not found`);
     }
 
     logger.info(`Found pubkey: ${pubkey} for ${name}`);
