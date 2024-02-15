@@ -55,6 +55,51 @@ describe("Nostr NIP 05 API tests", () => {
       .expect(422);
   });
 
+  it("should fail with a forbidden name in another case", async () => {
+    const userData = createUserData({ name: "xxX" });
+
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(422);
+  });
+
+  it("should fail with a reserved name", async () => {
+    const userData = createUserData({ name: "help" });
+
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(422);
+  });
+
+  it("should fail with a reserved name with different casing", async () => {
+    const userData = createUserData({ name: "Help" });
+
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(422);
+  });
+
+  it("should fail if the name is too long", async () => {
+    const longName = "a".repeat(31);
+    const userData = createUserData({ name: longName });
+
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(422);
+  });
+
   it("should fail if the name is not found", async () => {
     await request(app)
       .get("/.well-known/nostr.json")
@@ -84,7 +129,7 @@ describe("Nostr NIP 05 API tests", () => {
     const getResponse = await request(app)
       .get("/.well-known/nostr.json")
       .set("Host", "nos.social")
-      .query({ name: "bob" })
+      .query({ name: "Bob" })
       .expect(200);
 
     const jsonResponse = JSON.parse(getResponse.text);
