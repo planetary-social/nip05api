@@ -1,12 +1,19 @@
 const pubkeyPattern = "^[a-fA-F0-9]{64}$";
-const namePattern = "^[a-z0-9-_.]+$";
+// We accept uppercase but we will convert everything to lowercase
+const namePattern = "^[a-zA-Z0-9-_.]+$";
+const maxLength = 30;
 
 export const postNip05 = {
   target: "body",
   schema: {
     type: "object",
     properties: {
-      name: { type: "string", pattern: namePattern, notForbiddenName: true },
+      name: {
+        type: "string",
+        pattern: namePattern,
+        maxLength,
+        notForbiddenName: true,
+      },
       data: {
         type: "object",
         properties: {
@@ -30,7 +37,7 @@ export const nip05QueryName = {
   schema: {
     type: "object",
     properties: {
-      name: { type: "string", pattern: namePattern },
+      name: { type: "string", pattern: namePattern, maxLength },
     },
     required: ["name"],
     additionalProperties: false,
@@ -42,7 +49,7 @@ export const nip05ParamsName = {
   schema: {
     type: "object",
     properties: {
-      name: { type: "string", pattern: namePattern },
+      name: { type: "string", pattern: namePattern, maxLength },
     },
     required: ["name"],
     additionalProperties: false,

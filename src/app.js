@@ -17,7 +17,7 @@ const metricsMiddleware = promBundle({
   includeDefaultMetrics: true,
 });
 
-app.set('trust proxy', true);
+app.set("trust proxy", true);
 
 app.use(json());
 app.use(cors());
@@ -40,8 +40,7 @@ app.use("/", routes);
 
 app.use((err, req, res, next) => {
   const status = err.status || err.statusCode || 500;
-  const message =
-    status === 500 ? "Internal Server Error" : err.message;
+  const message = status === 500 ? "Internal Server Error" : err.message;
 
   logger.error(err);
   res.status(status).json({ error: message });
