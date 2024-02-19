@@ -25,11 +25,13 @@ NPUB="$2"
 RELAYS="${@:3}"
 
 RELAYS_JSON_ARRAY=$(printf "%s\n" $RELAYS | jq -R . | jq -s .)
-BASE64_DELETE_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='DELETE' -t u="http://nos.social/.well-known/api/names/$NAME" --sec $NIP05_SEC | base64)
+BASE64_DELETE_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='DELETE' -t u="http://nos.social/api/names/$NAME" --sec $NIP05_SEC | base64)
 
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "http://nos.social/api/names/$NAME" \
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "https://nos.social/api/names/$NAME" \
     -H "Content-Type: application/json" \
     -H "Authorization: Nostr $BASE64_DELETE_AUTH_EVENT")
+
+echo "HTTP Status from delete: $HTTP_STATUS"
 
 PUBKEY=$(nostrkeytool --npub2pubkey $NPUB)
 
