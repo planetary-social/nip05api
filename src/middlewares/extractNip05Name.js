@@ -17,11 +17,31 @@ function extractName(req) {
   const nameFromQueryOrBody =
     req.query.name || req.params.name || req.body.name;
 
+  let name = nameFromQueryOrBody;
   if (nameFromQueryOrBody === "_") {
-    return validateAndReturnSubdomain(nonRootSubdomains);
+    name = validateAndReturnSubdomain(nonRootSubdomains);
   }
 
-  return nameFromQueryOrBody;
+  validateName(name);
+
+  return name;
+}
+
+function validateName(name) {
+  if (name.length < 3) {
+    throw new AppError(
+      422,
+      `Name '${name}' should have more than 3 characters.`
+    );
+  }
+
+  if (name.startsWith("-")) {
+    throw new AppError(422, `Name '${name}' should not start with a hyphen.`);
+  }
+
+  if (name.endsWith("-")) {
+    throw new AppError(422, `Name '${name}' should not start with a hyphen.`);
+  }
 }
 
 function validateDomain(host) {

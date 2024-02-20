@@ -100,6 +100,50 @@ describe("Nostr NIP 05 API tests", () => {
       .expect(422);
   });
 
+  it("should fail if the name is too short", async () => {
+    const userData = createUserData({ name: "a" });
+
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(422);
+  });
+
+  it("should fail if the name starts with -", async () => {
+    const userData = createUserData({ name: "-aa" });
+
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(422);
+  });
+
+  it("should fail if the name ends with -", async () => {
+    const userData = createUserData({ name: "aa-" });
+
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(422);
+  });
+
+  it("should fail if the name includes a dot", async () => {
+    const userData = createUserData({ name: "aa." });
+
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(422);
+  });
+
   it("should fail if the name is not found", async () => {
     await request(app)
       .get("/.well-known/nostr.json")
