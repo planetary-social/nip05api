@@ -1,6 +1,6 @@
 const pubkeyPattern = "^[a-fA-F0-9]{64}$";
 // We accept uppercase but we will convert everything to lowercase
-const namePattern = "^[a-zA-Z0-9-_.]+$";
+const namePattern = "^[a-zA-Z0-9-_]+$";
 const maxLength = 30;
 
 export const postNip05 = {
