@@ -25,7 +25,7 @@ NPUB="$2"
 RELAYS="${@:3}"
 
 RELAYS_JSON_ARRAY=$(printf "%s\n" $RELAYS | jq -R . | jq -s .)
-BASE64_DELETE_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='DELETE' -t u="http://nos.social/api/names/$NAME" --sec $NIP05_SEC | base64)
+BASE64_DELETE_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='DELETE' -t u="https://nos.social/api/names/$NAME" --sec $NIP05_SEC | base64)
 
 HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "https://nos.social/api/names/$NAME" \
     -H "Content-Type: application/json" \
@@ -41,7 +41,7 @@ JSON_PAYLOAD=$(jq -n \
                   --argjson relays "$RELAYS_JSON_ARRAY" \
                   '{name: $name, data: {pubkey: $pubkey, relays: $relays}}')
 
-BASE64_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='POST' -t u='http://nos.social/api/names' --sec $NIP05_SEC | base64)
+BASE64_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='POST' -t u='https://nos.social/api/names' --sec $NIP05_SEC | base64)
 curl -s https://nos.social/api/names \
     -H "Content-Type: application/json" \
     -H "Authorization: Nostr $BASE64_AUTH_EVENT" \
