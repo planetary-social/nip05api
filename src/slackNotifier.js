@@ -33,6 +33,7 @@ export default async function fetchAndSendLatestEntries(repo) {
     .join("\n");
 
   await sendSlackMessage(`Latest ${latestEntries.length} entries:\n${message}`);
+  logger.info("Sent latest entries to Slack.");
   await repo.setLastSentEntryTimestamp(
     new Date(latestEntries[0].updatedAt).getTime()
   );

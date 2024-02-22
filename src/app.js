@@ -9,6 +9,7 @@ import routes from "./routes.js";
 import logger from "./logger.js";
 import NameRecordRepository from "./nameRecordRepository.js";
 import fetchAndSendLatestEntries from "./slackNotifier.js";
+import config from "../config/index.js";
 
 const redisClient = await getRedisClient();
 const nameRecordRepository = new NameRecordRepository(redisClient);
@@ -50,7 +51,7 @@ app.use((err, req, res, next) => {
   res.status(status).json({ error: message });
 });
 
-cron.schedule("*/1 * * * *", async () => {
+cron.schedule(config.slackCron, async () => {
   logger.info("Checking for new entries to send to Slack...");
   await fetchAndSendLatestEntries(nameRecordRepository);
 });
