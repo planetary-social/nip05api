@@ -24,7 +24,7 @@ export default async function fetchAndSendLatestEntries(repo) {
   const message = latestEntries
     .map(
       (entry, index) =>
-        `${index + 1}. *Name*: ${entry.name}\n` +
+        `${index + 1}. https://njump.me/${entry.name}@nos.social\n` +
         `> *Pubkey*: ${entry.pubkey}\n` +
         `> *Relays*: ${entry.relays.join(", ")}\n` +
         `> *Client IP*: ${entry.clientIp}\n` +
