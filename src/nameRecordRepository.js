@@ -1,6 +1,7 @@
 import NameRecord from "./nameRecord.js";
 import { AppError } from "./errors.js";
 
+const MAX_ENTRIES = 1000;
 export default class NameRecordRepository {
   constructor(redisClient) {
     this.redis = redisClient;
@@ -30,6 +31,7 @@ export default class NameRecordRepository {
   async save(nameRecord) {
     const { name, pubkey, relays, clientIp, userAgent } = nameRecord;
     const updated_at = new Date().toISOString();
+    const timestamp = new Date(updated_at).getTime() / 1000; // Convert to UNIX timestamp
 
     const currentPubkey = await this.redis.get(`pubkey:${name}`);
     if (currentPubkey && currentPubkey !== pubkey) {
@@ -46,18 +48,17 @@ export default class NameRecordRepository {
     if (relays && relays.length) {
       pipeline.sadd(`relays:${pubkey}`, ...relays);
     }
-
     if (clientIp) {
       pipeline.set(`ip:${pubkey}`, clientIp);
     }
     if (userAgent) {
       pipeline.set(`user_agent:${pubkey}`, userAgent);
     }
-
     pipeline.set(`updated_at:${pubkey}`, updated_at);
 
-    const timestamp = new Date().getTime() / 1000;
     pipeline.zadd(`name_record_updates`, timestamp, name);
+    // Keep the latest maxEntries records by removing older ones
+    pipeline.zremrangebyrank(`name_record_updates`, 0, -(MAX_ENTRIES + 1));
 
     await pipeline.exec();
   }

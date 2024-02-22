@@ -41,8 +41,7 @@ router.post(
       data: { pubkey, relays },
     } = req.body;
     const name = req.nip05Name;
-    const clientIp =
-      req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    const clientIp = getClientIp(req);
     const userAgent = req.headers["user-agent"];
 
     const nameRecord = new NameRecord(
@@ -136,6 +135,22 @@ async function validatePubkey(authEvent, req) {
       `NIP-98: Authentication pubkey '${authEvent.pubkey}' is neither the service pubkey '${config.servicePubkey}' nor matches both stored and payload pubkeys.`
     );
   }
+}
+
+function getClientIp(req) {
+  const forwardedIpsStr = req.headers["x-forwarded-for"];
+  const realIp = req.headers["x-real-ip"];
+
+  if (forwardedIpsStr) {
+    const forwardedIps = forwardedIpsStr.split(",");
+    return forwardedIps[0];
+  }
+
+  if (realIp) {
+    return realIp;
+  }
+
+  return req.socket.remoteAddress;
 }
 
 export default router;
