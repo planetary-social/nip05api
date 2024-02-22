@@ -80,11 +80,24 @@ export default class NameRecordRepository {
   }
 
   async findLatest(limit = 10) {
-    const names = await this.redis.zrevrange("nameRecordUpdates", 0, limit - 1);
+    const names = await this.redis.zrevrange(
+      "name_record_updates",
+      0,
+      limit - 1
+    );
     const records = await Promise.all(
       names.map((name) => this.findByName(name))
     );
 
-    return records; // These are sorted by updated_at due to the sorted set's ordering
+    return records;
+  }
+
+  async setLastSentEntryTimestamp(timestamp) {
+    await this.redis.set("lastSentEntryTimestamp", timestamp);
+  }
+
+  async getLastSentEntryTimestamp() {
+    const timestamp = await this.redis.get("lastSentEntryTimestamp");
+    return timestamp ? parseInt(timestamp, 10) : null;
   }
 }

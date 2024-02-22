@@ -6,7 +6,7 @@ export default class NameRecord {
     relays = [],
     clientIp = "",
     userAgent = "",
-    updated_at
+    updatedAt
   ) {
     validateName(name);
 
@@ -15,7 +15,7 @@ export default class NameRecord {
     this.relays = relays;
     this.clientIp = clientIp;
     this.userAgent = userAgent;
-    this.updated_at = updated_at;
+    this.updatedAt = updatedAt;
   }
 }
 
