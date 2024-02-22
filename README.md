@@ -33,6 +33,10 @@ pnpm test
 
 ## Usage
 
+We expect that clients will hit specific endpoints for creation and updates (POST) and deletion (DELETE). 
+
+Although the NIP accepts dots and underscores in names, we only allow a smaller subset without them so that we are more friendly to http redirection.
+
 ### POST Endpoint
 
 To securely authenticate POST requests to the `nip05api` endpoint, utilize the [NIP-98](https://github.com/nostr-protocol/nips/blob/master/98.md) HTTP authentication method. This involves creating a signed Nostr event as per NIP 98 specifications, encoding it in base64, and including it in the `Authorization` header.
@@ -89,6 +93,10 @@ The GET endpoint implements NIP-05 functionality. No authentication is required 
 ```sh
 curl -H 'Host: nos.social' http://127.0.0.1:3000/.well-known/nostr.json?name=alice
 ```
+
+### External Setup
+
+We configure rate limits and redirects to njump through our [Traefik infra config](https://github.com/planetary-social/ansible-scripts/tree/main/roles/nos_social)
 
 ## Contributing
 Contributions are welcome! Fork the project, submit pull requests, or report issues.
