@@ -7,6 +7,7 @@ import { postNip05, nip05QueryName, nip05ParamsName } from "./schemas.js";
 import nip98Auth from "./middlewares/nip98Auth.js";
 import config from "../config/index.js";
 import { AppError, UNAUTHORIZED_STATUS } from "./errors.js";
+import NameRecord from "./nameRecord.js";
 
 const router = Router();
 
@@ -15,20 +16,16 @@ router.get(
   validateSchema(nip05QueryName),
   extractNip05Name,
   asyncHandler("getNip05", async (req, res) => {
-    const name = req.nip05Name;
+    const nameRecord = await req.nameRecordRepo.findByName(req.nip05Name);
 
-    const pubkey = await req.redis.get(`pubkey:${name}`);
-    if (!pubkey) {
-      throw new AppError(404, `Name ${name} not found`);
+    if (!nameRecord) {
+      throw new AppError(404, `Name ${req.nip05Name} not found`);
     }
 
-    logger.info(`Found pubkey: ${pubkey} for ${name}`);
-
-    const relays = await req.redis.smembers(`relays:${pubkey}`);
-
-    const response = { names: {}, relays: {} };
-    response.names[name] = pubkey;
-    response.relays[pubkey] = relays;
+    const response = {
+      names: { [nameRecord.name]: nameRecord.pubkey },
+      relays: { [nameRecord.pubkey]: nameRecord.relays },
+    };
 
     res.status(200).json(response);
   })
@@ -43,29 +40,13 @@ router.post(
     const {
       data: { pubkey, relays },
     } = req.body;
-
     const name = req.nip05Name;
-    const currentPubkey = await req.redis.get(`pubkey:${name}`);
 
-    if (currentPubkey && currentPubkey !== pubkey) {
-      return res
-        .status(409)
-        .send(
-          "Conflict: pubkey already exists, you can only change associated relays."
-        );
-    }
+    const nameRecord = new NameRecord(name, pubkey, relays);
+    await req.nameRecordRepo.save(nameRecord);
 
-    const pipeline = req.redis.multi();
-    pipeline.set(`pubkey:${name}`, pubkey);
-    pipeline.del(`relays:${pubkey}`);
-    if (relays?.length) {
-      pipeline.sadd(`relays:${pubkey}`, ...relays);
-    }
-
-    const result = await pipeline.exec();
-    logger.info(`Added ${name} with pubkey ${pubkey}`);
-
-    res.status(200).json();
+    logger.info(`Added/Updated ${name} with pubkey ${pubkey}`);
+    res.status(200).json({ message: "Name record saved successfully." });
   })
 );
 
@@ -76,20 +57,14 @@ router.delete(
   nip98Auth(validatePubkey),
   asyncHandler("deleteNip05", async (req, res) => {
     const name = req.nip05Name;
+    const deleted = await req.nameRecordRepo.deleteByName(name);
 
-    const pubkey = await req.redis.get(`pubkey:${name}`);
-    if (!pubkey) {
+    if (!deleted) {
       throw new AppError(404, "Name not found");
     }
 
-    const pipeline = req.redis.multi();
-    pipeline.del(`relays:${pubkey}`);
-    pipeline.del(`pubkey:${name}`);
-    await pipeline.exec();
-
-    logger.info(`Deleted ${name} with pubkey ${pubkey}`);
-
-    res.status(200).json();
+    logger.info(`Deleted ${name}`);
+    res.status(200).json({ message: "Name record deleted successfully." });
   })
 );
 
@@ -120,7 +95,7 @@ if (process.env.NODE_ENV === "test") {
  */
 async function validatePubkey(authEvent, req) {
   const name = req.nip05Name;
-  const storedPubkey = await req.redis.get(`pubkey:${name}`);
+  const storedPubkey = await req.nameRecordRepo.findByName(name).pubkey;
   const payloadPubkey = req.body?.data?.pubkey;
 
   const isServicePubkey = authEvent.pubkey === config.servicePubkey;
