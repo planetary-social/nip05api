@@ -41,8 +41,17 @@ router.post(
       data: { pubkey, relays },
     } = req.body;
     const name = req.nip05Name;
+    const clientIp =
+      req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+    const userAgent = req.headers["user-agent"];
 
-    const nameRecord = new NameRecord(name, pubkey, relays);
+    const nameRecord = new NameRecord(
+      name,
+      pubkey,
+      relays,
+      clientIp,
+      userAgent
+    );
     await req.nameRecordRepo.save(nameRecord);
 
     logger.info(`Added/Updated ${name} with pubkey ${pubkey}`);
