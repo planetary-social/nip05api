@@ -15,6 +15,9 @@ if (process.env.NODE_ENV === "production") {
 }
 
 export default {
+  latestEntriesCount: 10,
+  slackWebhookUrl: process.env.SLACK_WEBHOOK_URL,
+  slackCron: process.env.SLACK_CRON || "*/10 * * * *",
   redis: {
     host: process.env.REDIS_HOST || "localhost",
   },
