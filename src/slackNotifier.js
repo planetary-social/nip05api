@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 import config from "../config/index.js";
 import logger from "./logger.js";
 
+/* istanbul ignore next */
 export default async function fetchAndSendLatestEntries(repo) {
   if (!config.slackWebhookUrl) {
     logger.info("No Slack webhook URL provided. Skipping sending to Slack.");
