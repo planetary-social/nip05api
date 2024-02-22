@@ -28,10 +28,17 @@ export function validateName(name) {
   }
 
   if (name.startsWith("-")) {
-    throw new AppError(422, `Name '${name}' should not start with a hyphen.`);
+    throw new AppError(422, `Name '${name}' should not start with a hyphen -.`);
   }
 
   if (name.endsWith("-")) {
-    throw new AppError(422, `Name '${name}' should not start with a hyphen.`);
+    throw new AppError(422, `Name '${name}' should not start with a hyphen -.`);
+  }
+
+  if (name.includes("_")) {
+    throw new AppError(
+      422,
+      `Name '${name}' should not include an underscore _.`
+    );
   }
 }
