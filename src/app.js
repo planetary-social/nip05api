@@ -6,8 +6,10 @@ import pinoHTTP from "pino-http";
 import promClient from "prom-client";
 import promBundle from "express-prom-bundle";
 import cors from "cors";
+import NameRecordRepository from "./nameRecordRepository.js";
 
 const redisClient = await getRedisClient();
+const nameRecordRepository = new NameRecordRepository(redisClient);
 const app = express();
 
 const metricsMiddleware = promBundle({
@@ -30,7 +32,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  req.redis = redisClient;
+  req.nameRecordRepo = nameRecordRepository;
   next();
 });
 

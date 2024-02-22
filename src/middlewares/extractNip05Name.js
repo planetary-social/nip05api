@@ -1,6 +1,7 @@
 import config from "../../config/index.js";
 import asyncHandler from "./asyncHandler.js";
 import { AppError } from "../errors.js";
+import { validateName } from "../nameRecord.js";
 
 export default function extractNip05Name(req, res, next) {
   return asyncHandler("extractNip05Name", async (req, res) => {
@@ -25,23 +26,6 @@ function extractName(req) {
   validateName(name);
 
   return name;
-}
-
-function validateName(name) {
-  if (name.length < 3) {
-    throw new AppError(
-      422,
-      `Name '${name}' should have more than 3 characters.`
-    );
-  }
-
-  if (name.startsWith("-")) {
-    throw new AppError(422, `Name '${name}' should not start with a hyphen.`);
-  }
-
-  if (name.endsWith("-")) {
-    throw new AppError(422, `Name '${name}' should not start with a hyphen.`);
-  }
 }
 
 function validateDomain(host) {

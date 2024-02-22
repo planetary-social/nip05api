@@ -144,6 +144,17 @@ describe("Nostr NIP 05 API tests", () => {
       .expect(422);
   });
 
+  it("should fail if the name includes an underscore", async () => {
+    const userData = createUserData({ name: "aa_" });
+
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(422);
+  });
+
   it("should fail if the name is not found", async () => {
     await request(app)
       .get("/.well-known/nostr.json")
