@@ -25,7 +25,17 @@ export default class NameRecordRepository {
 
     const [pubkey, relays, userAgent, clientIp, updatedAt] = result;
 
-    return new NameRecord(name, pubkey, relays, clientIp, userAgent, updatedAt);
+    relays.push("wss://relay.nos.social");
+    const expandedRelays = [...new Set(relays)];
+
+    return new NameRecord(
+      name,
+      pubkey,
+      expandedRelays,
+      clientIp,
+      userAgent,
+      updatedAt
+    );
   }
 
   async save(nameRecord) {

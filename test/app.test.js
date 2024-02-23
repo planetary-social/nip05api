@@ -171,8 +171,11 @@ describe("Nostr NIP 05 API tests", () => {
       .expect("Access-Control-Allow-Origin", "*");
   });
 
-  it("should store and retrieve Nostr NIP 05 data dynamically through the name query param", async () => {
-    const userData = createUserData({ name: "bob" });
+  it("should store and retrieve Nostr NIP 05 data dynamically through the name query param, relays are uniq and wss://relay.nos.social added", async () => {
+    const userData = createUserData({
+      name: "bob",
+      relays: ["wss://relay1.com", "wss://relay1.com", "wss://relay2.com"],
+    });
 
     await request(app)
       .post("/api/names")
@@ -192,7 +195,11 @@ describe("Nostr NIP 05 API tests", () => {
     expect(jsonResponse).toEqual({
       names: { bob: config.servicePubkey },
       relays: {
-        [config.servicePubkey]: ["wss://relay1.com", "wss://relay2.com"],
+        [config.servicePubkey]: [
+          "wss://relay1.com",
+          "wss://relay2.com",
+          "wss://relay.nos.social",
+        ],
       },
     });
   });
@@ -218,7 +225,11 @@ describe("Nostr NIP 05 API tests", () => {
     expect(jsonResponse).toEqual({
       names: { bob: config.servicePubkey },
       relays: {
-        [config.servicePubkey]: ["wss://relay1.com", "wss://relay2.com"],
+        [config.servicePubkey]: [
+          "wss://relay1.com",
+          "wss://relay2.com",
+          "wss://relay.nos.social",
+        ],
       },
     });
   });
