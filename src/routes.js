@@ -13,8 +13,8 @@ const router = Router();
 
 router.get(
   "/.well-known/nostr.json",
-  validateSchema(nip05QueryName),
   extractNip05Name,
+  validateSchema(nip05QueryName),
   asyncHandler("getNip05", async (req, res) => {
     const nameRecord = await req.nameRecordRepo.findByName(req.nip05Name);
 
@@ -33,8 +33,8 @@ router.get(
 
 router.post(
   "/api/names",
-  validateSchema(postNip05),
   extractNip05Name,
+  validateSchema(postNip05),
   nip98Auth(validatePubkey),
   asyncHandler("postNip05", async (req, res) => {
     const {
@@ -60,8 +60,8 @@ router.post(
 
 router.delete(
   "/api/names/:name",
-  validateSchema(nip05ParamsName),
   extractNip05Name,
+  validateSchema(nip05ParamsName),
   nip98Auth(validatePubkey),
   asyncHandler("deleteNip05", async (req, res) => {
     const name = req.nip05Name;
@@ -79,8 +79,8 @@ router.delete(
 if (process.env.NODE_ENV === "test") {
   router.get(
     "/test/error",
-    validateSchema(nip05QueryName),
     extractNip05Name,
+    validateSchema(nip05QueryName),
     asyncHandler("testError", async (req, res) => {
       throw new Error("Test error");
     })

@@ -1,4 +1,5 @@
 import { AppError } from "./errors.js";
+import uts46 from "@oozcitak/uts46";
 export default class NameRecord {
   constructor(
     name,
@@ -41,4 +42,11 @@ export function validateName(name) {
       `Name '${name}' should not include an underscore _.`
     );
   }
+
+  const validatedName = uts46.toASCII(name);
+  if (!validatedName) {
+    throw new AppError(422, `Name '${name}' should be a valid UTS46 string.`);
+  }
+
+  return validatedName.toLowerCase();
 }

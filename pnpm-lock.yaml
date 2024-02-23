@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@oozcitak/uts46':
+    specifier: ^0.0.8
+    version: 0.0.8
   ajv:
     specifier: ^8.12.0
     version: 8.12.0
@@ -682,6 +685,19 @@ packages:
   /@noble/hashes@1.3.1:
     resolution: {integrity: sha512-EbqwksQwz9xDRGfDST86whPBgM65E0OH/pCgqW0GBVzO22bNE+NuIbeTb714+IfSjU3aRk47EUvXIb5bTsenKA==}
     engines: {node: '>= 16'}
+    dev: false
+
+  /@oozcitak/util@1.0.2:
+    resolution: {integrity: sha512-4n8B1cWlJleSOSba5gxsMcN4tO8KkkcvXhNWW+ADqvq9Xj+Lrl9uCa90GRpjekqQJyt84aUX015DG81LFpZYXA==}
+    engines: {node: '>=6.0'}
+    dev: false
+
+  /@oozcitak/uts46@0.0.8:
+    resolution: {integrity: sha512-/m/ytADxqWfGiNvenR5wkX7NGBRKQlypufv0w2NRAoWIGDuRLeweClJPRxV41Mln3HNtlF08OKoFFRUG8ztvGQ==}
+    engines: {node: '>=6.0'}
+    dependencies:
+      '@oozcitak/util': 1.0.2
+      punycode: 2.1.1
     dev: false
 
   /@opentelemetry/api@1.7.0:
@@ -2785,6 +2801,11 @@ packages:
   /pstree.remy@1.1.8:
     resolution: {integrity: sha512-77DZwxQmxKnu3aR542U+X8FypNzbfJ+C5XQDk3uWjWxn6151aIMGthWYRXTqT1E5oJvg+ljaa2OJi+VfvCOQ8w==}
     dev: true
+
+  /punycode@2.1.1:
+    resolution: {integrity: sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==}
+    engines: {node: '>=6'}
+    dev: false
 
   /punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}

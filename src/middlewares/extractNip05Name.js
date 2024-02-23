@@ -6,7 +6,7 @@ import { validateName } from "../nameRecord.js";
 export default function extractNip05Name(req, res, next) {
   return asyncHandler("extractNip05Name", async (req, res) => {
     const nip05Name = extractName(req);
-    req.nip05Name = nip05Name.toLowerCase();
+    req.nip05Name = nip05Name;
   })(req, res, next);
 }
 
@@ -23,9 +23,7 @@ function extractName(req) {
     name = validateAndReturnSubdomain(nonRootSubdomains);
   }
 
-  validateName(name);
-
-  return name;
+  return validateName(name);
 }
 
 function validateDomain(host) {
