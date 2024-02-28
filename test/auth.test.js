@@ -4,7 +4,7 @@ import app from "../src/app.js";
 import config from "../config";
 import {
   getNip98AuthToken,
-  createUserData,
+  createUserPayload,
   servicePubkeySecret,
 } from "./testUtils.js";
 
@@ -29,7 +29,7 @@ afterAll(async () => {
 
 describe("Nostr 98 Auth tests", () => {
   it("should succeed with correct auth event", async () => {
-    const userData = createUserData({ name: "bob" });
+    const userData = createUserPayload({ name: "bob" });
 
     await request(app)
       .post("/api/names")
@@ -40,7 +40,7 @@ describe("Nostr 98 Auth tests", () => {
   });
 
   it("should fail without an auth header", async () => {
-    const userData = createUserData({ name: "bob" });
+    const userData = createUserPayload({ name: "bob" });
 
     await request(app)
       .post("/api/names")
@@ -65,7 +65,7 @@ describe("Nostr 98 Auth tests", () => {
     const nip98InvalidAuthToken =
       Buffer.from(signedEventJSON).toString("base64");
 
-    const userData = createUserData({ name: "bob" });
+    const userData = createUserPayload({ name: "bob" });
 
     await request(app)
       .post("/api/names")
@@ -81,7 +81,7 @@ describe("Nostr 98 Auth tests", () => {
       method: "POST",
       secret: servicePubkeySecret.replace("1", "2"),
     });
-    const userData = createUserData({ name: "bob" });
+    const userData = createUserPayload({ name: "bob" });
 
     await request(app)
       .post("/api/names")
@@ -97,7 +97,7 @@ describe("Nostr 98 Auth tests", () => {
       method: "POST",
       secret: userPrivateKey,
     });
-    const userData = createUserData({ name: "bob", pubkey: userPubkey });
+    const userData = createUserPayload({ name: "bob", pubkey: userPubkey });
 
     await request(app)
       .post("/api/names")
@@ -112,7 +112,7 @@ describe("Nostr 98 Auth tests", () => {
       url: "http://nos.social/api/names",
       method: "GET",
     });
-    const userData = createUserData({ name: "bob" });
+    const userData = createUserPayload({ name: "bob" });
 
     await request(app)
       .post("/api/names")
@@ -127,7 +127,7 @@ describe("Nostr 98 Auth tests", () => {
       url: "http://wrong.nos.social/api/names",
       method: "POST",
     });
-    const userData = createUserData({ name: "bob" });
+    const userData = createUserPayload({ name: "bob" });
 
     await request(app)
       .post("/api/names")
@@ -143,7 +143,7 @@ describe("Nostr 98 Auth tests", () => {
       method: "POST",
       secret: userPrivateKey,
     });
-    const userData = createUserData({ name: "bob", pubkey: userPubkey });
+    const userData = createUserPayload({ name: "bob", pubkey: userPubkey });
 
     await request(app)
       .post("/api/names")
@@ -176,7 +176,7 @@ describe("Nostr 98 Auth tests", () => {
       },
     });
 
-    const userData = createUserData({ name: "bob" });
+    const userData = createUserPayload({ name: "bob" });
 
     await request(app)
       .post("/api/names")

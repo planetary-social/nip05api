@@ -1,7 +1,7 @@
 import { Router } from "express";
 import asyncHandler from "./middlewares/asyncHandler.js";
 import validateSchema from "./middlewares/validateSchema.js";
-import extractNip05Name from "./middlewares/extractNip05Name.js";
+import extractValidatedName from "./middlewares/extractNip05Name.js";
 import logger from "./logger.js";
 import { postNip05, nip05QueryName, nip05ParamsName } from "./schemas.js";
 import nip98Auth from "./middlewares/nip98Auth.js";
@@ -13,7 +13,7 @@ const router = Router();
 
 router.get(
   "/.well-known/nostr.json",
-  extractNip05Name,
+  extractValidatedName,
   validateSchema(nip05QueryName),
   asyncHandler("getNip05", async (req, res) => {
     const nameRecord = await req.nameRecordRepo.findByName(req.nip05Name);
@@ -33,9 +33,9 @@ router.get(
 
 router.post(
   "/api/names",
-  extractNip05Name,
-  validateSchema(postNip05),
+  extractValidatedName,
   nip98Auth(validatePubkey),
+  validateSchema(postNip05),
   asyncHandler("postNip05", async (req, res) => {
     const {
       data: { pubkey, relays },
@@ -60,9 +60,9 @@ router.post(
 
 router.delete(
   "/api/names/:name",
-  extractNip05Name,
-  validateSchema(nip05ParamsName),
+  extractValidatedName,
   nip98Auth(validatePubkey),
+  validateSchema(nip05ParamsName),
   asyncHandler("deleteNip05", async (req, res) => {
     const name = req.nip05Name;
     const deleted = await req.nameRecordRepo.deleteByName(name);
@@ -79,7 +79,7 @@ router.delete(
 if (process.env.NODE_ENV === "test") {
   router.get(
     "/test/error",
-    extractNip05Name,
+    extractValidatedName,
     validateSchema(nip05QueryName),
     asyncHandler("testError", async (req, res) => {
       throw new Error("Test error");
@@ -103,25 +103,22 @@ if (process.env.NODE_ENV === "test") {
  */
 async function validatePubkey(authEvent, req) {
   const name = req.nip05Name;
-  const storedPubkey = await req.nameRecordRepo.findByName(name).pubkey;
+  const storedNameRecord = await req.nameRecordRepo.findByName(name);
+  const storedPubkey = storedNameRecord?.pubkey;
   const payloadPubkey = req.body?.data?.pubkey;
 
   const isServicePubkey = authEvent.pubkey === config.servicePubkey;
-  const isStoredPubkeyMatch = storedPubkey
-    ? authEvent.pubkey === storedPubkey
-    : true;
-  const isPayloadPubkeyMatch = payloadPubkey
-    ? authEvent.pubkey === payloadPubkey
-    : true;
+  const isStoredPubkeyMatch = authEvent.pubkey === storedPubkey;
+  const isPayloadPubkeyMatch = authEvent.pubkey === payloadPubkey;
 
   if (!isServicePubkey) {
-    if (!isStoredPubkeyMatch) {
+    if (storedPubkey && !isStoredPubkeyMatch) {
       throw new AppError(
         UNAUTHORIZED_STATUS,
         `NIP-98: Authentication pubkey '${authEvent.pubkey}' does not match the stored pubkey '${storedPubkey}'.`
       );
     }
-    if (!isPayloadPubkeyMatch) {
+    if (payloadPubkey && !isPayloadPubkeyMatch) {
       throw new AppError(
         UNAUTHORIZED_STATUS,
         `NIP-98: Authentication pubkey '${authEvent.pubkey}' does not match the payload pubkey '${payloadPubkey}'.`
@@ -129,12 +126,9 @@ async function validatePubkey(authEvent, req) {
     }
   }
 
-  if (!isServicePubkey && !(isStoredPubkeyMatch && isPayloadPubkeyMatch)) {
-    throw new AppError(
-      UNAUTHORIZED_STATUS,
-      `NIP-98: Authentication pubkey '${authEvent.pubkey}' is neither the service pubkey '${config.servicePubkey}' nor matches both stored and payload pubkeys.`
-    );
-  }
+  req.shouldValidateForbiddenNames = Boolean(
+    (!storedPubkey || !isStoredPubkeyMatch) && !isServicePubkey
+  );
 }
 
 function getClientIp(req) {

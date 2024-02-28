@@ -2,8 +2,13 @@ import request from "supertest";
 import getRedisClient from "../src/getRedisClient.js";
 import app from "../src/app.js";
 import config from "../config/index.js";
-import { getNip98AuthToken, createUserData } from "./testUtils.js";
+import { getNip98AuthToken, createUserPayload } from "./testUtils.js";
+import test from "../config/test.js";
 
+const notSystemSecret =
+  "73685b53bdf5ac16498f2dc6a9891d076039adbe7eebff88b7f7ac72963450e2";
+const notSystemPubkey =
+  "a7e5c75a2f70a5e2a17fb6eadefd8e2b0830e906a3b03e576159cfaa5783b0d9";
 const redisClient = await getRedisClient();
 const nip98PostAuthToken = await getNip98AuthToken({
   url: "http://nos.social/api/names",
@@ -12,6 +17,12 @@ const nip98PostAuthToken = await getNip98AuthToken({
 const nip98PostAuthTokenDomain = await getNip98AuthToken({
   url: "http://bob.nos.social/api/names",
   method: "POST",
+});
+
+const nip98PostAuthTokenNotSystem = await getNip98AuthToken({
+  url: "http://nos.social/api/names",
+  method: "POST",
+  secret: notSystemSecret,
 });
 
 beforeEach(async () => {
@@ -34,7 +45,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should validate the correct schema", async () => {
-    const invalidUserData = createUserData({ name: "bo b" });
+    const invalidUserData = createUserPayload({ name: "bo b" });
 
     await request(app)
       .post("/api/names")
@@ -44,53 +55,76 @@ describe("Nostr NIP 05 API tests", () => {
       .expect(422);
   });
 
-  it("should fail with a forbidden name", async () => {
-    const userData = createUserData({ name: "xxx" });
+  it("should not fail with a forbidden name with the system account", async () => {
+    const userData = createUserPayload({ name: "xxx" });
 
     await request(app)
       .post("/api/names")
       .set("Host", "nos.social")
       .set("Authorization", `Nostr ${nip98PostAuthToken}`)
       .send(userData)
-      .expect(422);
+      .expect(200);
   });
 
-  it("should fail with a forbidden name in another case", async () => {
-    const userData = createUserData({ name: "xxX" });
+  it("should fail with a forbidden name", async () => {
+    const userData = createUserPayload({
+      name: "xxx",
+      pubkey: notSystemPubkey,
+    });
 
     await request(app)
       .post("/api/names")
       .set("Host", "nos.social")
-      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .set("Authorization", `Nostr ${nip98PostAuthTokenNotSystem}`)
       .send(userData)
       .expect(422);
   });
 
   it("should fail with a reserved name", async () => {
-    const userData = createUserData({ name: "help" });
+    const userData = createUserPayload({
+      name: "help",
+      pubkey: notSystemPubkey,
+    });
 
     await request(app)
       .post("/api/names")
       .set("Host", "nos.social")
-      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .set("Authorization", `Nostr ${nip98PostAuthTokenNotSystem}`)
       .send(userData)
       .expect(422);
   });
 
   it("should fail with a reserved name with different casing", async () => {
-    const userData = createUserData({ name: "Help" });
+    const userData = createUserPayload({
+      name: "Help",
+      pubkey: notSystemPubkey,
+    });
 
     await request(app)
       .post("/api/names")
       .set("Host", "nos.social")
-      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .set("Authorization", `Nostr ${nip98PostAuthTokenNotSystem}`)
       .send(userData)
       .expect(422);
   });
 
+  it("should not fail with a reserved name if the auth token used corresponds with the current stored pubkey", async () => {
+    redisClient.set("pubkey:help", notSystemPubkey);
+    const userData = createUserPayload({
+      name: "help",
+      pubkey: notSystemPubkey,
+    });
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthTokenNotSystem}`)
+      .send(userData)
+      .expect(200);
+  });
+
   it("should fail if the name is too long", async () => {
     const longName = "a".repeat(31);
-    const userData = createUserData({ name: longName });
+    const userData = createUserPayload({ name: longName });
 
     await request(app)
       .post("/api/names")
@@ -101,7 +135,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should fail if the name is too short", async () => {
-    const userData = createUserData({ name: "a" });
+    const userData = createUserPayload({ name: "a" });
 
     await request(app)
       .post("/api/names")
@@ -112,7 +146,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should fail if the name starts with -", async () => {
-    const userData = createUserData({ name: "-aa" });
+    const userData = createUserPayload({ name: "-aa" });
 
     await request(app)
       .post("/api/names")
@@ -123,7 +157,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should fail if the name ends with -", async () => {
-    const userData = createUserData({ name: "aa-" });
+    const userData = createUserPayload({ name: "aa-" });
 
     await request(app)
       .post("/api/names")
@@ -134,7 +168,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should fail if the name includes a dot", async () => {
-    const userData = createUserData({ name: "aa." });
+    const userData = createUserPayload({ name: "aa." });
 
     await request(app)
       .post("/api/names")
@@ -145,7 +179,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should fail if the name includes an underscore", async () => {
-    const userData = createUserData({ name: "aa_" });
+    const userData = createUserPayload({ name: "aa_" });
 
     await request(app)
       .post("/api/names")
@@ -172,7 +206,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should store and retrieve Nostr NIP 05 data dynamically through the name query param, relays are uniq and wss://relay.nos.social added", async () => {
-    const userData = createUserData({
+    const userData = createUserPayload({
       name: "bob",
       relays: ["wss://relay1.com", "wss://relay1.com", "wss://relay2.com"],
     });
@@ -205,7 +239,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should store and retrieve Nostr NIP 05 data through the subdomain", async () => {
-    const userData = createUserData({ name: "_" });
+    const userData = createUserPayload({ name: "_" });
 
     await request(app)
       .post("/api/names")
@@ -235,7 +269,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should not use components of the root domain as a subdomain", async () => {
-    const userData = createUserData({ name: "nos" });
+    const userData = createUserPayload({ name: "nos" });
 
     await request(app)
       .post("/api/names")
@@ -251,7 +285,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should fail if url doesn't end with root domain", async () => {
-    const userData = createUserData({ name: "nos" });
+    const userData = createUserPayload({ name: "nos" });
 
     await request(app)
       .post("/api/names")
@@ -267,7 +301,7 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should fail to overwrite the pubkey if the name is already taken", async () => {
-    const userData = createUserData({ name: "bob" });
+    const userData = createUserPayload({ name: "bob" });
 
     await request(app)
       .post("/api/names")
@@ -290,7 +324,7 @@ describe("Nostr NIP 05 API tests", () => {
     let nip98DeleteAuthToken;
 
     beforeEach(async () => {
-      const userData = createUserData({ name: "bob" });
+      const userData = createUserPayload({ name: "bob" });
 
       await request(app)
         .post("/api/names")
