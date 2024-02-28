@@ -12,7 +12,6 @@ export const postNip05 = {
         type: "string",
         pattern: namePattern,
         maxLength,
-        notForbiddenName: true,
       },
       data: {
         type: "object",

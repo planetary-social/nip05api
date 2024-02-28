@@ -3,19 +3,10 @@ import addFormats from "ajv-formats";
 import asyncHandler from "./asyncHandler.js";
 import { AppError } from "../errors.js";
 import forbiddenNames from "./forbiddenNames.js";
+import logger from "../logger.js";
 
 const ajv = new Ajv();
 addFormats(ajv);
-
-function validateForbiddenName(schema, data) {
-  return !forbiddenNames.some((regex) => regex.test(data.toLowerCase()));
-}
-
-ajv.addKeyword({
-  keyword: "notForbiddenName",
-  validate: validateForbiddenName,
-  errors: false,
-});
 
 export default function validateSchema(schemaInfo) {
   return asyncHandler("validateSchema", async (req, res) => {
@@ -23,9 +14,38 @@ export default function validateSchema(schemaInfo) {
 
     let valid;
     try {
+      if (!req.nip05Name) {
+        throw new Error(
+          "No NIP-05 name found in the request. Ensure this middleware is used after the extractNip05Name middleware."
+        );
+      }
+      if (req.method !== "GET") {
+        if (req.shouldValidateForbiddenNames === undefined) {
+          throw new Error(
+            "No shouldValidateForbiddenNames found in the request. Ensure this middleware is used after the nip98Auth middleware sets it"
+          );
+        }
+
+        if (req.shouldValidateForbiddenNames) {
+          const isForbidden = forbiddenNames.some((regex) =>
+            regex.test(req.nip05Name.toLowerCase())
+          );
+          logger.info(
+            `Tried to use a forbidden name ${req.nip05Name}, req: ${req}`
+          );
+          if (isForbidden) {
+            throw new AppError(422, `Name '${req.nip05Name}' is forbidden.`);
+          }
+        }
+      }
+
       valid = validate(req[schemaInfo.target]);
     } catch (error) {
-      throw new AppError(400, error.message);
+      if (error.status !== 422) {
+        throw new AppError(400, error.message);
+      }
+
+      throw error;
     }
 
     if (!valid) {
