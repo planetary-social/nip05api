@@ -9,19 +9,9 @@ export default async function fetchAndSendLatestEntries(repo) {
     return;
   }
 
-  const latestEntries = await repo.findLatest(config.latestEntriesCount);
+  const pendingEntries = await repo.fetchAndClearPendingNotifications();
 
-  const lastSentEntryTimestamp = await repo.getLastSentEntryTimestamp();
-
-  if (
-    latestEntries.length === 0 ||
-    new Date(latestEntries[0].updatedAt).getTime() <= lastSentEntryTimestamp
-  ) {
-    logger.info("No new changes to send to Slack.");
-    return;
-  }
-
-  const message = latestEntries
+  const message = pendingEntries
     .map(
       (entry, index) =>
         `${index + 1}. https://njump.me/${entry.name}@nos.social\n` +
@@ -33,11 +23,12 @@ export default async function fetchAndSendLatestEntries(repo) {
     )
     .join("\n");
 
-  await sendSlackMessage(`Latest ${latestEntries.length} entries:\n${message}`);
-  logger.info("Sent latest entries to Slack.");
-  await repo.setLastSentEntryTimestamp(
-    new Date(latestEntries[0].updatedAt).getTime()
-  );
+  if (pendingEntries.length > 0) {
+    await sendSlackMessage(`Latest entries:\n${message}`);
+    logger.info("Sent latest entries to Slack.");
+  } else {
+    logger.info("No new changes to send to Slack.");
+  }
 }
 
 async function sendSlackMessage(message) {

@@ -9,6 +9,10 @@ export default class NameRecord {
     userAgent = "",
     updatedAt
   ) {
+    if (!pubkey) {
+      throw new AppError(422, "Pubkey is required.");
+    }
+
     validateName(name);
 
     this.name = name;

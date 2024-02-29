@@ -66,9 +66,7 @@ export default class NameRecordRepository {
     }
     pipeline.set(`updated_at:${pubkey}`, updated_at);
 
-    pipeline.zadd(`name_record_updates`, timestamp, name);
-    // Keep the latest maxEntries records by removing older ones
-    pipeline.zremrangebyrank(`name_record_updates`, 0, -(MAX_ENTRIES + 1));
+    pipeline.zadd(`pending_notifications`, timestamp, name);
 
     await pipeline.exec();
   }
@@ -83,31 +81,25 @@ export default class NameRecordRepository {
     pipeline.del(`ip:${pubkey}`);
     pipeline.del(`user_agent:${pubkey}`);
     pipeline.del(`updated_at:${pubkey}`);
-    pipeline.zrem(`name_record_updates`, name);
+    pipeline.zrem(`pending_notifications`, name);
 
     await pipeline.exec();
     return true;
   }
 
-  async findLatest(limit = 10) {
-    const names = await this.redis.zrevrange(
-      "name_record_updates",
-      0,
-      limit - 1
-    );
-    const records = await Promise.all(
-      names.map((name) => this.findByName(name))
-    );
+  async fetchAndClearPendingNotifications() {
+    const luaScript = `
+      local entries = redis.call('ZRANGE', 'pending_notifications', 0, -1)
+      redis.call('DEL', 'pending_notifications')
+      return entries
+    `;
+
+    const names = await this.redis.eval(luaScript, 0);
+
+    const records = (
+      await Promise.all(names.map((name) => this.findByName(name)))
+    ).filter(Boolean);
 
     return records;
-  }
-
-  async setLastSentEntryTimestamp(timestamp) {
-    await this.redis.set("lastSentEntryTimestamp", timestamp);
-  }
-
-  async getLastSentEntryTimestamp() {
-    const timestamp = await this.redis.get("lastSentEntryTimestamp");
-    return timestamp ? parseInt(timestamp, 10) : null;
   }
 }
