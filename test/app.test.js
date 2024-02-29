@@ -3,7 +3,8 @@ import getRedisClient from "../src/getRedisClient.js";
 import app from "../src/app.js";
 import config from "../config/index.js";
 import { getNip98AuthToken, createUserPayload } from "./testUtils.js";
-import test from "../config/test.js";
+import NameRecord from "../src/nameRecord.js";
+import NameRecordRepository from "../src/nameRecordRepository.js";
 
 const notSystemSecret =
   "73685b53bdf5ac16498f2dc6a9891d076039adbe7eebff88b7f7ac72963450e2";
@@ -378,5 +379,53 @@ describe("Nostr NIP 05 API tests", () => {
         .set("Authorization", `Nostr ${nip98PostAuthToken}`)
         .expect(401);
     });
+  });
+
+  it("should save notifications and then fetch and clear them correctly", async () => {
+    const testRecords = [
+      new NameRecord(
+        "testName1",
+        "pubkey1",
+        ["wss://relay1.com"],
+        "clientIp1",
+        "userAgent1",
+        new Date().toISOString()
+      ),
+      new NameRecord(
+        "testName2",
+        "pubkey2",
+        ["wss://relay2.com"],
+        "clientIp2",
+        "userAgent2",
+        new Date().toISOString()
+      ),
+    ];
+
+    const repo = new NameRecordRepository(redisClient);
+
+    for (const record of testRecords) {
+      await repo.save(record);
+    }
+
+    const pendingCountBefore = await redisClient.zcount(
+      "pending_notifications",
+      "-inf",
+      "+inf"
+    );
+    expect(pendingCountBefore).toEqual(testRecords.length);
+
+    const fetchedRecords = await repo.fetchAndClearPendingNotifications();
+
+    const fetchedNames = fetchedRecords.map((record) => record.name);
+    expect(fetchedNames.sort()).toEqual(
+      testRecords.map((record) => record.name).sort()
+    );
+
+    const pendingCountAfter = await redisClient.zcount(
+      "pending_notifications",
+      "-inf",
+      "+inf"
+    );
+    expect(pendingCountAfter).toEqual(0);
   });
 });
