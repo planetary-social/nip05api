@@ -3,7 +3,7 @@ import asyncHandler from "./asyncHandler.js";
 import { AppError } from "../errors.js";
 import { validateName } from "../nameRecord.js";
 
-export default function extractNip05Name(req, res, next) {
+export default function extractValidatedName(req, res, next) {
   return asyncHandler("extractNip05Name", async (req, res) => {
     const nip05Name = extractName(req);
     req.nip05Name = nip05Name;

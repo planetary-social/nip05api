@@ -25,6 +25,10 @@ export default class NameRecord {
 }
 
 export function validateName(name) {
+  if (!name) {
+    throw new AppError(422, "Name is required.");
+  }
+
   if (name.length < 3) {
     throw new AppError(
       422,

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import asyncHandler from "./middlewares/asyncHandler.js";
 import validateSchema from "./middlewares/validateSchema.js";
-import extractValidatedName from "./middlewares/extractNip05Name.js";
+import extractValidatedName from "./middlewares/extractValidatedName.js";
 import logger from "./logger.js";
 import { postNip05, nip05QueryName, nip05ParamsName } from "./schemas.js";
 import nip98Auth from "./middlewares/nip98Auth.js";
