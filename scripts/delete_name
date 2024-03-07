@@ -1,0 +1,29 @@
+#!/bin/bash
+
+usage() {
+    echo "Usage: $0 NAME"
+    echo "  NAME       - The name to be used."
+    echo "  Note: This script requires the 'pubhex' secret to be set in the NIP05_SEC environment variable."
+    echo "Dependencies:"
+    echo "  nostrkeytool - A tool for NOSTR keys, installable via 'cargo install nostrkeytool' (https://crates.io/crates/nostrkeytool)."
+    echo "  nak - A tool required for authentication, installable via 'go install github.com/fiatjaf/nak@latest' (https://github.com/fiatjaf/nak)."
+    echo ""
+    echo "Example:"
+    echo "  export NIP05_SEC=nsec1j40appu959h3gedew92t9ty05mg32sc4l6e4qvrz80rryu4x7kuqxxx"
+    echo "  $0 daniel"
+    exit 1
+}
+
+if [ "$#" -lt 1 ]; then
+    usage
+fi
+
+NAME="$1"
+
+BASE64_DELETE_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='DELETE' -t u="https://nos.social/api/names/$NAME" --sec $NIP05_SEC | base64)
+
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "https://nos.social/api/names/$NAME" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Nostr $BASE64_DELETE_AUTH_EVENT")
+
+echo "HTTP Status from delete: $HTTP_STATUS"
