@@ -196,6 +196,12 @@ describe("Nostr NIP 05 API tests", () => {
       .set("Host", "nos.social")
       .query({ name: "somename" })
       .expect(404);
+
+    await request(app)
+      .get("/.well-known/webfinger")
+      .set("Host", "nos.social")
+      .query({ resource: "acct:somename@nos.social" })
+      .expect(404);
   });
 
   it("should include cors header in the response", async () => {
@@ -236,6 +242,40 @@ describe("Nostr NIP 05 API tests", () => {
           "wss://relay.nos.social",
         ],
       },
+    });
+  });
+
+  it("should store and retrieve Webfinger data dynamically through the resource query param", async () => {
+    const userData = createUserPayload({
+      name: "bob",
+      relays: ["wss://relay1.com", "wss://relay1.com", "wss://relay2.com"],
+    });
+
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(200);
+
+    const getResponse = await request(app)
+      .get("/.well-known/webfinger")
+      .set("Host", "nos.social")
+      .query({ resource: "acct:bob@nos.social" })
+      .expect(200);
+
+    const jsonResponse = JSON.parse(getResponse.text);
+
+    expect(jsonResponse).toEqual({
+      subject: "acct:bob@nos.social",
+      aliases: ["https://bob.nos.social"],
+      links: [
+        {
+          rel: "self",
+          type: "application/activity+json",
+          href: "https://mostr.pub/users/6c815df9b3e7f43492c232aba075b5fa5b6a60b731ce6ccfc7c1e8bd2adcceb2",
+        },
+      ],
     });
   });
 
