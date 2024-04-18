@@ -15,8 +15,8 @@ function extractName(req) {
   validateDomain(host);
 
   const nonRootSubdomains = host.split(`.${config.rootDomain}`).find(Boolean);
-  const nameFromQueryOrBody =
-    req.query.name || req.params.name || req.body.name;
+
+  const nameFromQueryOrBody = getNameFromReq(req);
 
   let name = nameFromQueryOrBody;
   if (nameFromQueryOrBody === "_") {
@@ -24,6 +24,25 @@ function extractName(req) {
   }
 
   return validateName(name);
+}
+
+function getNameFromReq(req) {
+  if (!req.query.resource) {
+    return req.query.name || req.params.name || req.body.name;
+  }
+
+  //Mastodon's webfinger implementation uses the resource query parameter
+  return getNameForMastodon(req.query.resource);
+}
+
+const usernameRegex = /^acct:([^@]+)/;
+function getNameForMastodon(resource) {
+  const match = resource.match(usernameRegex);
+  if (!match) {
+    throw new AppError(422, `Could not find the name from '${resource}'`);
+  }
+
+  return match[1];
 }
 
 function validateDomain(host) {
