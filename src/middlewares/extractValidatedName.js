@@ -35,11 +35,14 @@ function getNameFromReq(req) {
   return getNameForMastodon(req.query.resource);
 }
 
-const usernameRegex = /^acct:([^@]+)/;
+const usernameRegex = /^acct:([^@]+)@nos\.social$/;
 function getNameForMastodon(resource) {
   const match = resource.match(usernameRegex);
   if (!match) {
-    throw new AppError(422, `Could not find the name from '${resource}'`);
+    throw new AppError(
+      422,
+      `Invalid resource format or domain. Required format 'acct:username@nos.social', received '${resource}'`
+    );
   }
 
   return match[1];

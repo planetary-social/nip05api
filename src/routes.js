@@ -16,29 +16,11 @@ router.get(
   extractValidatedName,
   asyncHandler("getWebfinger", async (req, res) => {
     const nameRecord = await req.nameRecordRepo.findByName(req.nip05Name);
-
     if (!nameRecord) {
       throw new AppError(404, `Name ${req.nip05Name} not found`);
     }
-
-    let aliasUrl = `https://${req.nip05Name}.nos.social`;
-    if (req.nip05Name === "_") {
-      aliasUrl = `https://nos.social`;
-    }
-
-    const response = {
-      subject: `acct:${req.nip05Name}@nos.social`,
-      aliases: [aliasUrl],
-      links: [
-        {
-          rel: "self",
-          type: "application/activity+json",
-          href: `https://mostr.pub/users/${nameRecord.pubkey}`,
-        },
-      ],
-    };
-
-    res.status(200).json(response);
+    const mostrUrl = `https://mostr.pub/.well-known/webfinger?resource=acct:${nameRecord.pubkey}@mostr.pub`;
+    res.redirect(302, mostrUrl);
   })
 );
 

@@ -5,6 +5,7 @@ import config from "../config/index.js";
 import { getNip98AuthToken, createUserPayload } from "./testUtils.js";
 import NameRecord from "../src/nameRecord.js";
 import NameRecordRepository from "../src/nameRecordRepository.js";
+import { response } from "express";
 
 const notSystemSecret =
   "73685b53bdf5ac16498f2dc6a9891d076039adbe7eebff88b7f7ac72963450e2";
@@ -190,13 +191,15 @@ describe("Nostr NIP 05 API tests", () => {
       .expect(422);
   });
 
-  it("should fail if the name is not found", async () => {
+  it("should fail if the name is not found for nostr.json", async () => {
     await request(app)
       .get("/.well-known/nostr.json")
       .set("Host", "nos.social")
       .query({ name: "somename" })
       .expect(404);
+  });
 
+  it("should fail if the name is not found for webfinger", async () => {
     await request(app)
       .get("/.well-known/webfinger")
       .set("Host", "nos.social")
@@ -262,21 +265,11 @@ describe("Nostr NIP 05 API tests", () => {
       .get("/.well-known/webfinger")
       .set("Host", "nos.social")
       .query({ resource: "acct:bob@nos.social" })
-      .expect(200);
+      .expect(302);
 
-    const jsonResponse = JSON.parse(getResponse.text);
-
-    expect(jsonResponse).toEqual({
-      subject: "acct:bob@nos.social",
-      aliases: ["https://bob.nos.social"],
-      links: [
-        {
-          rel: "self",
-          type: "application/activity+json",
-          href: "https://mostr.pub/users/6c815df9b3e7f43492c232aba075b5fa5b6a60b731ce6ccfc7c1e8bd2adcceb2",
-        },
-      ],
-    });
+    expect(getResponse.header.location).toEqual(
+      "https://mostr.pub/.well-known/webfinger?resource=acct:6c815df9b3e7f43492c232aba075b5fa5b6a60b731ce6ccfc7c1e8bd2adcceb2@mostr.pub"
+    );
   });
 
   it("should store and retrieve Nostr NIP 05 data through the subdomain", async () => {
