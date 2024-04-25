@@ -219,7 +219,7 @@ const forbiddenNames = [
   /corp.*whore/,
   /cox/,
   /cp/,
-  /cub/,
+  /^cub$/,
   /cum.*chugger/,
   /cum.*dumpster/,
   /cum.*freak/,
