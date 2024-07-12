@@ -54,6 +54,7 @@ const reservedNames = [
   /^matt$/,
   /^mattlorentz$/,
   /^mplorentz$/,
+  /^news$/,
   /^notifications$/,
   /^operations$/,
   /^ops$/,

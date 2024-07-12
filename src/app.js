@@ -31,6 +31,18 @@ app.use(
   pinoHTTP({
     logger,
     quietReqLogger: true,
+    autoLogging: {
+      ignorePaths: ["/metrics"],
+    },
+    serializers: {
+      req: (req) => ({
+        id: req.id,
+        method: req.method,
+        url: req.url,
+        query: req.query,
+        params: req.params,
+      }),
+    },
   })
 );
 
