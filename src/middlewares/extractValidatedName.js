@@ -15,12 +15,22 @@ function extractName(req) {
   validateDomain(host);
 
   const nonRootSubdomains = host.split(`.${config.rootDomain}`).find(Boolean);
-
   const nameFromQueryOrBody = getNameFromReq(req);
 
   let name = nameFromQueryOrBody;
   if (nameFromQueryOrBody === "_") {
-    name = validateAndReturnSubdomain(nonRootSubdomains);
+    if (!nonRootSubdomains) {
+      throw new AppError(
+        422,
+        "The _ format requires a corresponding subdomain as the NIP-05 name."
+      );
+    }
+
+    if (nonRootSubdomains === config.rootDomain) {
+      name = "_";
+    } else {
+      name = nonRootSubdomains;
+    }
   }
 
   return validateName(name);
@@ -55,14 +65,4 @@ function validateDomain(host) {
       `Host mismatch: '${host}' does not conform to the expected root domain '${config.rootDomain}'.`
     );
   }
-}
-
-function validateAndReturnSubdomain(nonRootSubdomains) {
-  if (!nonRootSubdomains) {
-    throw new AppError(
-      422,
-      "The _ format requires a corresponding subdomain as the NIP-05 name."
-    );
-  }
-  return nonRootSubdomains;
 }

@@ -1,7 +1,8 @@
 /** @type {import('jest').Config} */
 
 export default {
-  modulePathIgnorePatterns: ["./config/"],
+  modulePathIgnorePatterns: ["<rootDir>/config/"],
+  coveragePathIgnorePatterns: ["<rootDir>/config/"],
   coverageThreshold: {
     global: {
       branches: 75,
