@@ -261,6 +261,12 @@ describe("Nostr NIP 05 API tests", () => {
       .send(userData)
       .expect(200);
 
+    await request(app)
+      .get("/.well-known/webfinger")
+      .set("Host", "nos.social")
+      .query({ resource: "acctWRONG:bob@nos.social" })
+      .expect(422);
+
     const getResponse = await request(app)
       .get("/.well-known/webfinger")
       .set("Host", "nos.social")
@@ -302,7 +308,7 @@ describe("Nostr NIP 05 API tests", () => {
     });
   });
 
-  it.only("should store and retrieve Nostr NIP 05 data through an empty subdomain", async () => {
+  it("should store and retrieve Nostr NIP 05 data through an empty subdomain", async () => {
     const userData = createUserPayload({ name: "_" });
 
     await request(app)
