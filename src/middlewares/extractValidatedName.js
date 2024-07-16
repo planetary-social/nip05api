@@ -20,7 +20,18 @@ function extractName(req) {
 
   let name = nameFromQueryOrBody;
   if (nameFromQueryOrBody === "_") {
-    name = validateAndReturnSubdomain(nonRootSubdomains);
+    if (!nonRootSubdomains) {
+      throw new AppError(
+        422,
+        "The _ format requires a corresponding subdomain as the NIP-05 name."
+      );
+    }
+
+    if (nonRootSubdomains === config.rootDomain) {
+      name = "_";
+    } else {
+      name = nonRootSubdomains;
+    }
   }
 
   return validateName(name);

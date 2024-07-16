@@ -29,19 +29,23 @@ export function validateName(name) {
     throw new AppError(422, "Name is required.");
   }
 
-  if (name.length < 3) {
-    throw new AppError(
-      422,
-      `Name '${name}' should have more than 3 characters.`
-    );
-  }
-
   if (name.startsWith("-")) {
     throw new AppError(422, `Name '${name}' should not start with a hyphen -.`);
   }
 
   if (name.endsWith("-")) {
     throw new AppError(422, `Name '${name}' should not start with a hyphen -.`);
+  }
+
+  if (name === "_") {
+    return name;
+  }
+
+  if (name.length < 3) {
+    throw new AppError(
+      422,
+      `Name '${name}' should have more than 3 characters.`
+    );
   }
 
   if (name.includes("_")) {

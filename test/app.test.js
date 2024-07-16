@@ -302,6 +302,36 @@ describe("Nostr NIP 05 API tests", () => {
     });
   });
 
+  it.only("should store and retrieve Nostr NIP 05 data through an empty subdomain", async () => {
+    const userData = createUserPayload({ name: "_" });
+
+    await request(app)
+      .post("/api/names")
+      .set("Host", "nos.social")
+      .set("Authorization", `Nostr ${nip98PostAuthToken}`)
+      .send(userData)
+      .expect(200);
+
+    const getResponse = await request(app)
+      .get("/.well-known/nostr.json")
+      .set("Host", "nos.social")
+      .query({ name: "_" })
+      .expect(200);
+
+    const jsonResponse = JSON.parse(getResponse.text);
+
+    expect(jsonResponse).toEqual({
+      names: { _: config.servicePubkey },
+      relays: {
+        [config.servicePubkey]: [
+          "wss://relay1.com",
+          "wss://relay2.com",
+          "wss://relay.nos.social",
+        ],
+      },
+    });
+  });
+
   it("should not use components of the root domain as a subdomain", async () => {
     const userData = createUserPayload({ name: "nos" });
 
