@@ -23,6 +23,7 @@ const reservedNames = [
   /^developer$/,
   /^development$/,
   /^dorsey$/,
+  /^dwebcamp$/,
   /^email$/,
   /^engineer$/,
   /^evan henshaw$/,
