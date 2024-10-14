@@ -11,12 +11,12 @@ export default class NameRecordRepository {
     const luaScript = `
       local pubkey = redis.call('GET', 'pubkey:' .. KEYS[1])
       if not pubkey then return nil end
-  
+
       local relays = redis.call('SMEMBERS', 'relays:' .. pubkey)
       local userAgent = redis.call('GET', 'user_agent:' .. pubkey)
       local clientIp = redis.call('GET', 'ip:' .. pubkey)
       local updatedAt = redis.call('GET', 'updated_at:' .. pubkey)
-  
+
       return {pubkey, relays, userAgent, clientIp, updatedAt}
     `;
 
@@ -85,6 +85,72 @@ export default class NameRecordRepository {
 
     await pipeline.exec();
     return true;
+  }
+
+  async deleteByPubkey(pubkey) {
+    const namesToDelete = [];
+
+    // Use SCAN, avoid KEYS
+    const stream = this.redis.scanStream({
+      match: "pubkey:*",
+      count: 1000,
+    });
+
+    let processingPromises = [];
+
+    return new Promise((resolve, reject) => {
+      stream.on("data", (resultKeys) => {
+        stream.pause();
+
+        const pipeline = this.redis.pipeline();
+
+        resultKeys.forEach((key) => {
+          pipeline.get(key);
+        });
+
+        pipeline
+          .exec()
+          .then((results) => {
+            const processing = [];
+
+            for (let i = 0; i < resultKeys.length; i++) {
+              const key = resultKeys[i];
+              const [err, associatedPubkey] = results[i];
+
+              if (err) {
+                console.error(`Error getting value for key ${key}:`, err);
+                continue;
+              }
+
+              if (associatedPubkey === pubkey) {
+                const name = key.split(":")[1];
+                namesToDelete.push(name);
+              }
+            }
+
+            stream.resume();
+          })
+          .catch((err) => {
+            stream.destroy();
+            reject(err);
+          });
+      });
+
+      stream.on("end", async () => {
+        try {
+          for (const name of namesToDelete) {
+            await this.deleteByName(name);
+          }
+          resolve(true);
+        } catch (err) {
+          reject(err);
+        }
+      });
+
+      stream.on("error", (err) => {
+        reject(err);
+      });
+    });
   }
 
   async fetchAndClearPendingNotifications() {

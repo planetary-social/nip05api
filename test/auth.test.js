@@ -1,5 +1,5 @@
 import request from "supertest";
-import getRedisClient from "../src/getRedisClient.js";
+import { getRedisClient } from "../src/getRedisClient.js";
 import app from "../src/app.js";
 import config from "../config";
 import {

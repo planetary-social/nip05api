@@ -2,11 +2,11 @@ import config from "../config/index.js";
 import logger from "./logger.js";
 
 // istanbul ignore next
-const redisImportPromise = process.env.NODE_ENV === "test"
-  ? import("ioredis-mock")
-  : import("ioredis");
+const redisImportPromise =
+  process.env.NODE_ENV === "test" ? import("ioredis-mock") : import("ioredis");
 
 let redisClient;
+let remoteRedisClient;
 
 async function initializeRedis() {
   try {
@@ -25,11 +25,33 @@ async function initializeRedis() {
   }
 }
 
-async function getRedisClient() {
+async function initializeRemoteRedis() {
+  try {
+    const Redis = (await redisImportPromise).default;
+    remoteRedisClient = new Redis(config.redis.remote_host);
+
+    remoteRedisClient.on("connect", () =>
+      logger.info("Connected to Remote Redis")
+    );
+    remoteRedisClient.on("error", (err) =>
+      logger.error(err, "Remote Redis error")
+    );
+  } catch (error) {
+    // istanbul ignore next
+    logger.error(error, "Error initializing Remote Redis client");
+  }
+}
+
+export async function getRedisClient() {
   if (!redisClient) {
     await initializeRedis();
   }
   return redisClient;
 }
 
-export default getRedisClient;
+export async function getRemoteRedisClient() {
+  if (!remoteRedisClient) {
+    await initializeRemoteRedis();
+  }
+  return remoteRedisClient;
+}
