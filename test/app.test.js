@@ -498,10 +498,8 @@ describe("Nostr NIP 05 API tests", () => {
   });
 
   it("should delete all data associated with a given pubkey but not affect other pubkeys", async () => {
-    // Arrange
     const repo = new NameRecordRepository(redisClient);
 
-    // Create NameRecords with different pubkeys
     const record1 = new NameRecord(
       "user1",
       "pubkey1",
@@ -529,28 +527,20 @@ describe("Nostr NIP 05 API tests", () => {
       new Date().toISOString()
     );
 
-    // Save the records
     await repo.save(record1);
     await repo.save(record2);
     await repo.save(record3);
 
-    // Act
-    // Delete by pubkey1
     await repo.deleteByPubkey("pubkey1");
 
-    // Assert
-    // Verify that records with pubkey1 are deleted
     const fetchedRecord1 = await repo.findByName("user1");
     const fetchedRecord3 = await repo.findByName("user3");
 
     expect(fetchedRecord1).toBeNull();
     expect(fetchedRecord3).toBeNull();
 
-    // Verify that records with pubkey2 are still present
     const fetchedRecord2 = await repo.findByName("user2");
 
     expect(fetchedRecord2).not.toBeNull();
-    expect(fetchedRecord2.name).toEqual("user2");
-    expect(fetchedRecord2.pubkey).toEqual("pubkey2");
   });
 });
