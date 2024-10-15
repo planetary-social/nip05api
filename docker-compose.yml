@@ -6,6 +6,7 @@ services:
     environment:
       - NODE_ENV=development
       - REDIS_HOST=redis
+      - REMOTE_REDIS_URL=redis://redis:6379
       - ROOT_DOMAIN=localhost
 
   redis:

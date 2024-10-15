@@ -6,7 +6,7 @@ const redisImportPromise =
   process.env.NODE_ENV === "test" ? import("ioredis-mock") : import("ioredis");
 
 let redisClient;
-let remoteRedisClient;
+let vanishRequestsRedisClient;
 
 async function initializeNip05Redis() {
   try {
@@ -28,12 +28,12 @@ async function initializeNip05Redis() {
 async function initializeVanishRequestsRedis() {
   try {
     const Redis = (await redisImportPromise).default;
-    remoteRedisClient = new Redis(config.redis.remote_host);
+    vanishRequestsRedisClient = new Redis(config.redis.remote_host);
 
-    remoteRedisClient.on("connect", () =>
+    vanishRequestsRedisClient.on("connect", () =>
       logger.info("Connected to vanish requests Redis")
     );
-    remoteRedisClient.on("error", (err) =>
+    vanishRequestsRedisClient.on("error", (err) =>
       logger.error(err, "Vanish requests Redis error")
     );
   } catch (error) {
@@ -50,8 +50,8 @@ export async function getNip05RedisClient() {
 }
 
 export async function getVanishRequestsRedisClient() {
-  if (!remoteRedisClient) {
+  if (!vanishRequestsRedisClient) {
     await initializeVanishRequestsRedis();
   }
-  return remoteRedisClient;
+  return vanishRequestsRedisClient;
 }
