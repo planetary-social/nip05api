@@ -1,5 +1,5 @@
 import request from "supertest";
-import { getRedisClient } from "../src/getRedisClient.js";
+import { getNip05RedisClient } from "../src/getRedisClient.js";
 import app from "../src/app.js";
 import config from "../config/index.js";
 import { getNip98AuthToken, createUserPayload } from "./testUtils.js";
@@ -10,7 +10,7 @@ const notSystemSecret =
   "73685b53bdf5ac16498f2dc6a9891d076039adbe7eebff88b7f7ac72963450e2";
 const notSystemPubkey =
   "a7e5c75a2f70a5e2a17fb6eadefd8e2b0830e906a3b03e576159cfaa5783b0d9";
-const redisClient = await getRedisClient();
+const redisClient = await getNip05RedisClient();
 const nip98PostAuthToken = await getNip98AuthToken({
   url: "http://nos.social/api/names",
   method: "POST",

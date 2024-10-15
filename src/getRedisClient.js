@@ -8,7 +8,7 @@ const redisImportPromise =
 let redisClient;
 let remoteRedisClient;
 
-async function initializeRedis() {
+async function initializeNip05Redis() {
   try {
     const Redis = (await redisImportPromise).default;
     redisClient = new Redis({
@@ -17,41 +17,41 @@ async function initializeRedis() {
       db: config.redis.db,
     });
 
-    redisClient.on("connect", () => logger.info("Connected to Redis"));
-    redisClient.on("error", (err) => logger.error(err, "Redis error"));
+    redisClient.on("connect", () => logger.info("Connected to Nip 05 Redis"));
+    redisClient.on("error", (err) => logger.error(err, "Nip 05 Redis error"));
   } catch (error) {
     // istanbul ignore next
-    logger.error(error, "Error initializing Redis client");
+    logger.error(error, "Error initializing Nip 05 Redis client");
   }
 }
 
-async function initializeRemoteRedis() {
+async function initializeVanishRequestsRedis() {
   try {
     const Redis = (await redisImportPromise).default;
     remoteRedisClient = new Redis(config.redis.remote_host);
 
     remoteRedisClient.on("connect", () =>
-      logger.info("Connected to Remote Redis")
+      logger.info("Connected to vanish requests Redis")
     );
     remoteRedisClient.on("error", (err) =>
-      logger.error(err, "Remote Redis error")
+      logger.error(err, "Vanish requests Redis error")
     );
   } catch (error) {
     // istanbul ignore next
-    logger.error(error, "Error initializing Remote Redis client");
+    logger.error(error, "Error initializing vanish requests Redis client");
   }
 }
 
-export async function getRedisClient() {
+export async function getNip05RedisClient() {
   if (!redisClient) {
-    await initializeRedis();
+    await initializeNip05Redis();
   }
   return redisClient;
 }
 
-export async function getRemoteRedisClient() {
+export async function getVanishRequestsRedisClient() {
   if (!remoteRedisClient) {
-    await initializeRemoteRedis();
+    await initializeVanishRequestsRedis();
   }
   return remoteRedisClient;
 }

@@ -1,11 +1,14 @@
 import app from "./app.js";
 import logger from "./logger.js";
 import config from "../config/index.js";
-import { getRemoteRedisClient, getRedisClient } from "./getRedisClient.js";
-import VanishSubscriber from "./vanishSubscriber.js"; // Import the VanishSubscriber class
+import {
+  getVanishRequestsRedisClient,
+  getNip05RedisClient,
+} from "./getRedisClient.js";
+import VanishSubscriber from "./vanishSubscriber.js";
 
-const vanishRequestsRedisClient = await getRemoteRedisClient();
-const nip05RedisClient = await getRedisClient();
+const vanishRequestsRedisClient = await getVanishRequestsRedisClient();
+const nip05RedisClient = await getNip05RedisClient();
 
 const server = app.listen(config.port, () => {
   logger.info(`Server is running on port ${config.port}`);

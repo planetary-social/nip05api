@@ -4,14 +4,14 @@ import pinoHTTP from "pino-http";
 import promClient from "prom-client";
 import promBundle from "express-prom-bundle";
 import cors from "cors";
-import { getRedisClient } from "./getRedisClient.js";
+import { getNip05RedisClient } from "./getRedisClient.js";
 import routes from "./routes.js";
 import logger from "./logger.js";
 import NameRecordRepository from "./nameRecordRepository.js";
 import fetchAndSendLatestEntries from "./slackNotifier.js";
 import config from "../config/index.js";
 
-const redisClient = await getRedisClient();
+const redisClient = await getNip05RedisClient();
 const nameRecordRepository = new NameRecordRepository(redisClient);
 const app = express();
 

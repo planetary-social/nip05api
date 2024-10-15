@@ -96,8 +96,6 @@ export default class NameRecordRepository {
       count: 1000,
     });
 
-    let processingPromises = [];
-
     return new Promise((resolve, reject) => {
       stream.on("data", (resultKeys) => {
         stream.pause();
@@ -111,8 +109,6 @@ export default class NameRecordRepository {
         pipeline
           .exec()
           .then((results) => {
-            const processing = [];
-
             for (let i = 0; i < resultKeys.length; i++) {
               const key = resultKeys[i];
               const [err, associatedPubkey] = results[i];
