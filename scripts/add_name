@@ -6,6 +6,7 @@ usage() {
     echo "  NPUB       - The public key."
     echo "  RELAY_URLS - One or more relay URLs, each as a separate argument."
     echo "  Note: This script requires the 'pubhex' secret to be set in the NIP05_SEC environment variable."
+    echo "  The base URL can be changed by setting the BASE_URL environment variable. Default is 'https://nos.social'."
     echo "Dependencies:"
     echo "  nostrkeytool - A tool for NOSTR keys, installable via 'cargo install nostrkeytool' (https://crates.io/crates/nostrkeytool)."
     echo "  nak - A tool required for authentication, installable via 'go install github.com/fiatjaf/nak@latest' (https://github.com/fiatjaf/nak)."
@@ -23,17 +24,17 @@ fi
 NAME="$1"
 NPUB="$2"
 RELAYS="${@:3}"
-
+BASE_URL="${BASE_URL:-https://nos.social}"
 RELAYS_JSON_ARRAY=$(printf "%s\n" $RELAYS | jq -R . | jq -s .)
-BASE64_DELETE_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='DELETE' -t u="https://nos.social/api/names/$NAME" --sec $NIP05_SEC | base64)
+BASE64_DELETE_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='DELETE' -t u="$BASE_URL/api/names/$NAME" --sec "$NIP05_SEC" | base64)
 
-HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "https://nos.social/api/names/$NAME" \
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "$BASE_URL/api/names/$NAME" \
     -H "Content-Type: application/json" \
     -H "Authorization: Nostr $BASE64_DELETE_AUTH_EVENT")
 
 echo "HTTP Status from delete: $HTTP_STATUS"
 
-PUBKEY=$(nostrkeytool --npub2pubkey $NPUB)
+PUBKEY=$(nostrkeytool --npub2pubkey "$NPUB")
 
 JSON_PAYLOAD=$(jq -n \
                   --arg name "$NAME" \
@@ -41,8 +42,9 @@ JSON_PAYLOAD=$(jq -n \
                   --argjson relays "$RELAYS_JSON_ARRAY" \
                   '{name: $name, data: {pubkey: $pubkey, relays: $relays}}')
 
-BASE64_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='POST' -t u='https://nos.social/api/names' --sec $NIP05_SEC | base64)
-curl -s https://nos.social/api/names \
+BASE64_AUTH_EVENT=$(nak event --content='' --kind 27235 -t method='POST' -t u="$BASE_URL/api/names" --sec "$NIP05_SEC" | base64)
+
+curl -s "$BASE_URL/api/names" \
     -H "Content-Type: application/json" \
     -H "Authorization: Nostr $BASE64_AUTH_EVENT" \
     -d "$JSON_PAYLOAD"

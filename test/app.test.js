@@ -1,17 +1,16 @@
 import request from "supertest";
-import getRedisClient from "../src/getRedisClient.js";
+import { getNip05RedisClient } from "../src/getRedisClient.js";
 import app from "../src/app.js";
 import config from "../config/index.js";
 import { getNip98AuthToken, createUserPayload } from "./testUtils.js";
 import NameRecord from "../src/nameRecord.js";
 import NameRecordRepository from "../src/nameRecordRepository.js";
-import { response } from "express";
 
 const notSystemSecret =
   "73685b53bdf5ac16498f2dc6a9891d076039adbe7eebff88b7f7ac72963450e2";
 const notSystemPubkey =
   "a7e5c75a2f70a5e2a17fb6eadefd8e2b0830e906a3b03e576159cfaa5783b0d9";
-const redisClient = await getRedisClient();
+const redisClient = await getNip05RedisClient();
 const nip98PostAuthToken = await getNip98AuthToken({
   url: "http://nos.social/api/names",
   method: "POST",
@@ -496,5 +495,52 @@ describe("Nostr NIP 05 API tests", () => {
       "+inf"
     );
     expect(pendingCountAfter).toEqual(0);
+  });
+
+  it("should delete all data associated with a given pubkey but not affect other pubkeys", async () => {
+    const repo = new NameRecordRepository(redisClient);
+
+    const record1 = new NameRecord(
+      "user1",
+      "pubkey1",
+      ["wss://relay1.com"],
+      "clientIp1",
+      "userAgent1",
+      new Date().toISOString()
+    );
+
+    const record2 = new NameRecord(
+      "user2",
+      "pubkey2",
+      ["wss://relay2.com"],
+      "clientIp2",
+      "userAgent2",
+      new Date().toISOString()
+    );
+
+    const record3 = new NameRecord(
+      "user3",
+      "pubkey1", // Same pubkey as record1
+      ["wss://relay3.com"],
+      "clientIp3",
+      "userAgent3",
+      new Date().toISOString()
+    );
+
+    await repo.save(record1);
+    await repo.save(record2);
+    await repo.save(record3);
+
+    await repo.deleteByPubkey("pubkey1");
+
+    const fetchedRecord1 = await repo.findByName("user1");
+    const fetchedRecord3 = await repo.findByName("user3");
+
+    expect(fetchedRecord1).toBeNull();
+    expect(fetchedRecord3).toBeNull();
+
+    const fetchedRecord2 = await repo.findByName("user2");
+
+    expect(fetchedRecord2).not.toBeNull();
   });
 });

@@ -2,13 +2,13 @@ import config from "../config/index.js";
 import logger from "./logger.js";
 
 // istanbul ignore next
-const redisImportPromise = process.env.NODE_ENV === "test"
-  ? import("ioredis-mock")
-  : import("ioredis");
+const redisImportPromise =
+  process.env.NODE_ENV === "test" ? import("ioredis-mock") : import("ioredis");
 
 let redisClient;
+let remoteRedisClient;
 
-async function initializeRedis() {
+async function initializeNip05Redis() {
   try {
     const Redis = (await redisImportPromise).default;
     redisClient = new Redis({
@@ -17,19 +17,41 @@ async function initializeRedis() {
       db: config.redis.db,
     });
 
-    redisClient.on("connect", () => logger.info("Connected to Redis"));
-    redisClient.on("error", (err) => logger.error(err, "Redis error"));
+    redisClient.on("connect", () => logger.info("Connected to Nip 05 Redis"));
+    redisClient.on("error", (err) => logger.error(err, "Nip 05 Redis error"));
   } catch (error) {
     // istanbul ignore next
-    logger.error(error, "Error initializing Redis client");
+    logger.error(error, "Error initializing Nip 05 Redis client");
   }
 }
 
-async function getRedisClient() {
+async function initializeVanishRequestsRedis() {
+  try {
+    const Redis = (await redisImportPromise).default;
+    remoteRedisClient = new Redis(config.redis.remote_host);
+
+    remoteRedisClient.on("connect", () =>
+      logger.info("Connected to vanish requests Redis")
+    );
+    remoteRedisClient.on("error", (err) =>
+      logger.error(err, "Vanish requests Redis error")
+    );
+  } catch (error) {
+    // istanbul ignore next
+    logger.error(error, "Error initializing vanish requests Redis client");
+  }
+}
+
+export async function getNip05RedisClient() {
   if (!redisClient) {
-    await initializeRedis();
+    await initializeNip05Redis();
   }
   return redisClient;
 }
 
-export default getRedisClient;
+export async function getVanishRequestsRedisClient() {
+  if (!remoteRedisClient) {
+    await initializeVanishRequestsRedis();
+  }
+  return remoteRedisClient;
+}

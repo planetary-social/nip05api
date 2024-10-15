@@ -20,6 +20,7 @@ export default {
   slackCron: process.env.SLACK_CRON || "*/10 * * * *",
   redis: {
     host: process.env.REDIS_HOST || "localhost",
+    remote_host: process.env.REDIS_REMOTE_HOST || "redis://redis:6379",
   },
   logLevel: "info",
   rootDomain: process.env.ROOT_DOMAIN || "nos.social",
