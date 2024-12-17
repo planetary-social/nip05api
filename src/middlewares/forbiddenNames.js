@@ -76,6 +76,7 @@ const reservedNames = [
   /^staff$/,
   /^support$/,
   /^tech$/,
+  /^tagr$/,
   /^tools$/,
   /^web$/,
   /^zach$/,
